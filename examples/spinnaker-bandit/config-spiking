@@ -75,10 +75,10 @@ d_replace_rate   = 0.0
 
 # connection weight options
 weight_init_mean        = 0.0
-weight_init_stdev       = 10.0
-weight_max_value        = 100
-weight_min_value        = -100
-weight_mutate_power     = 5.0
+weight_init_stdev       = 0.01
+weight_max_value        = 0.1
+weight_min_value        = -0.1
+weight_mutate_power     = 0.05
 weight_mutate_rate      = 0.8
 weight_replace_rate     = 0.1
 

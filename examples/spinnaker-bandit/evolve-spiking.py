@@ -79,6 +79,9 @@ def simulate(genome, config):
 
 def eval_genome(genome, config):
     sum_square_error, simulated = simulate(genome, config)
+    print('len {}\n'.format(len(genome.nodes)))
+    if len(genome.nodes) > 2:
+        print("here")
     return 10.0 - sum_square_error
 
 

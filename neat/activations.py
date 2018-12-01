@@ -83,6 +83,14 @@ def abs_activation(z):
     return abs(z)
 
 
+def ex_activation(z):
+    return 1
+
+
+def in_activation(z):
+    return -1
+
+
 def hat_activation(z):
     return max(0.0, 1 - abs(z))
 
@@ -136,6 +144,8 @@ class ActivationFunctionSet(object):
         self.add('hat', hat_activation)
         self.add('square', square_activation)
         self.add('cube', cube_activation)
+        self.add('excitatory', ex_activation)
+        self.add('inhibitory', in_activation)
 
     def add(self, name, function):
         validate_activation(function)
