@@ -21,6 +21,7 @@ import csv
 import threading
 import pathos.multiprocessing
 from spinn_front_end_common.utilities import globals_variables
+from ast import literal_eval
 
 max_fail_score = -1000000
 
@@ -55,7 +56,7 @@ def thread_bandit(pop, thread_arms, split=1, top=True):
     for i in range(len(pool_result)):
         new_split = 4
         if pool_result[i] == 'fail' and len(pop_threads[i][0]) > 1:
-            print "splitting ", len(pop_threads[i][0]), " into ", new_split, " pieces"
+            print("splitting ", len(pop_threads[i][0]), " into ", new_split, " pieces")
             problem_arms = pop_threads[i][1]
             pool_result[i] = thread_bandit(pop_threads[i][0], problem_arms, new_split, top=False)
 
@@ -77,6 +78,94 @@ def thread_bandit(pop, thread_arms, split=1, top=True):
             agent_fitness.append(arm_results)
     return agent_fitness
 
+def connect_genes_to_fromlist(number_of_nodes, connections, nodes):
+    i2i_ex = []
+    i2i_in = []
+    i2h_ex = []
+    i2h_in = []
+    i2o_ex = []
+    i2o_in = []
+    h2i_ex = []
+    h2i_in = []
+    h2h_ex = []
+    h2h_in = []
+    h2o_ex = []
+    h2o_in = []
+    o2i_ex = []
+    o2i_in = []
+    o2h_ex = []
+    o2h_in = []
+    o2o_ex = []
+    o2o_in = []
+
+    ex_or_in = {}
+    translator = []
+    i = output_size
+    for node in nodes:
+        # translator.append([literal_eval(node), i])
+        ex_or_in[node] = [nodes[node].activation, i]
+        print(node, ': ', ex_or_in[node])
+        i += 1
+
+    #individual: Tuples of (innov, from, to, weight, enabled)
+
+    hidden_size = number_of_nodes - output_size - input_size
+
+    for conn in connections:
+        c = connections[conn]
+        connect_weight = c.weight
+        if c.enabled:
+            print('0:', c.key[0], '\t1:', c.key[1])
+            if c.key[0] < 0:
+                if c.key[1] < 0:
+                    i2i_ex.append((c.key[0]+input_size, c.key[1]+input_size, connect_weight, delay))
+                elif c.key[1] < output_size:
+                    i2o_ex.append((c.key[0]+input_size, c.key[1], connect_weight, delay))
+                elif ex_or_in['{}'.format(c.key[1])][1] < hidden_size + output_size:
+                    i2h_ex.append((c.key[0]+input_size, ex_or_in['{}'.format(c.key[1])][1]-output_size, connect_weight, delay))
+                else:
+                    print("shit broke")
+            elif c.key[0] < output_size:
+                if c.key[1] < 0:
+                    if ex_or_in['{}'.format(c.key[0])][0] == 'excitatory':
+                        o2i_ex.append((c.key[0], c.key[1]+input_size, connect_weight, delay))
+                    else:
+                        o2i_in.append((c.key[0], c.key[1]+input_size, connect_weight, delay))
+                elif c.key[1] < output_size:
+                    if ex_or_in['{}'.format(c.key[0])][0] == 'excitatory':
+                        o2o_ex.append((c.key[0], c.key[1], connect_weight, delay))
+                    else:
+                        o2o_in.append((c.key[0], c.key[1], connect_weight, delay))
+                elif ex_or_in['{}'.format(c.key[1])][1] < hidden_size + output_size:
+                    if ex_or_in['{}'.format(c.key[0])][0] == 'excitatory':
+                        o2h_ex.append((c.key[0], ex_or_in['{}'.format(c.key[1])][1]-output_size, connect_weight, delay))
+                    else:
+                        o2h_in.append((c.key[0], ex_or_in['{}'.format(c.key[1])][1]-output_size, connect_weight, delay))
+                else:
+                    print("shit broke")
+            elif ex_or_in['{}'.format(c.key[0])][1] < hidden_size + output_size:
+                if c.key[1] < 0:
+                    if ex_or_in['{}'.format(c.key[0])][0] == 'excitatory':
+                        h2i_ex.append((ex_or_in['{}'.format(c.key[0])][1]-output_size, c.key[1]+input_size, connect_weight, delay))
+                    else:
+                        h2i_in.append((ex_or_in['{}'.format(c.key[0])][1]-output_size, c.key[1]+input_size, connect_weight, delay))
+                elif c.key[1] < output_size:
+                    if ex_or_in['{}'.format(c.key[0])][0] == 'excitatory':
+                        h2o_ex.append((ex_or_in['{}'.format(c.key[0])][1]-output_size, c.key[1], connect_weight, delay))
+                    else:
+                        h2o_in.append((ex_or_in['{}'.format(c.key[0])][1]-output_size, c.key[1], connect_weight, delay))
+                elif ex_or_in['{}'.format(c.key[1])][1] < hidden_size + output_size:
+                    if ex_or_in['{}'.format(c.key[0])][0] == 'excitatory':
+                        h2h_ex.append((ex_or_in['{}'.format(c.key[0])][1]-output_size, ex_or_in['{}'.format(c.key[1])][1]-output_size, connect_weight, delay))
+                    else:
+                        h2h_in.append((ex_or_in['{}'.format(c.key[0])][1]-output_size, ex_or_in['{}'.format(c.key[1])][1]-output_size, connect_weight, delay))
+                else:
+                    print("shit broke")
+            else:
+                print("shit broke")
+
+
+    return i2i_ex, i2h_ex, i2o_ex, h2i_ex, h2h_ex, h2o_ex, o2i_ex, o2h_ex, o2o_ex, i2i_in, i2h_in, i2o_in, h2i_in, h2h_in, h2o_in, o2i_in, o2h_in, o2o_in
 
 def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
     #test the whole population and return scores
@@ -85,14 +174,14 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
     global empty_post_count
     global not_needed_ends
     global working_ends
-    print "start"
+    print("start")
     # gen_stats(pop)
     # save_champion(pop)
     # tracker.print_diff()
 
     #Acquire all connection matrices and node types
 
-    print len(pop)
+    print(len(pop))
     # tracker.print_diff()
     #create the SpiNN nets
     scores = []
@@ -100,7 +189,7 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
     flagged_agents = []
     try_except = 0
     while try_except < try_attempts:
-        print config
+        print (config)
         bandit_pops = []
         # receive_on_pops = []
         hidden_node_pops = []
@@ -112,21 +201,21 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
             p.setup(timestep=1.0)
             p.set_number_of_neurons_per_core(p.IF_cond_exp, 100)
         except:
-            print "set up failed, trying again"
+            print ("set up failed, trying again")
             try:
                 p.setup(timestep=1.0)
                 p.set_number_of_neurons_per_core(p.IF_cond_exp, 100)
             except:
-                print "set up failed, trying again for the last time"
+                print ("set up failed, trying again for the last time")
                 p.setup(timestep=1.0)
                 p.set_number_of_neurons_per_core(p.IF_cond_exp, 100)
         for i in range(len(pop)):
             if i not in flagged_agents:
-                number_of_nodes = len(pop[i].nodes)
+                number_of_nodes = len(pop[i][1].nodes) + len(local_arms)
                 hidden_size = number_of_nodes - output_size - input_size
 
                 [i2i_ex, i2h_ex, i2o_ex, h2i_ex, h2h_ex, h2o_ex, o2i_ex, o2h_ex, o2o_ex, i2i_in, i2h_in, i2o_in, h2i_in, h2h_in, h2o_in, o2i_in, o2h_in, o2o_in] = \
-                    connect_genes_to_fromlist(number_of_nodes, pop[i].conn_genes, pop[i].node_genes)
+                    connect_genes_to_fromlist(number_of_nodes, pop[i][1].connections, pop[i][1].nodes)
                 # Create bandit population
                 random_seed = []
                 for j in range(4):
@@ -214,19 +303,19 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
                 if len(i2i_in) == 0 and len(i2i_ex) == 0 and \
                         len(i2h_in) == 0 and len(i2h_ex) == 0 and \
                         len(i2o_in) == 0 and len(i2o_ex) == 0:
-                    print "empty out from bandit, adding empty pop to complete link"
+                    print ("empty out from bandit, adding empty pop to complete link")
                     empty_post = p.Population(1, p.IF_cond_exp(), label="empty_post {}".format(i))
                     p.Projection(bandit_pops[i], empty_post, p.AllToAllConnector())
                     empty_post_count += 1
 
-        print "reached here 1"
+        print ("reached here 1")
         # tracker.print_diff()
 
         simulator = get_simulator()
         try:
             p.run(runtime)
             try_except = try_attempts
-            print "successful run"
+            print ("successful run")
             break
         except:
             traceback.print_exc()
@@ -238,17 +327,17 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
                 not_needed_ends += 1
             all_fails += 1
             try_except += 1
-            print "\nfailed to run on attempt", try_except, ". total fails:", all_fails, "\n" \
-                    "ends good/bad:", working_ends, "/", not_needed_ends
+            print ("\nfailed to run on attempt", try_except, ". total fails:", all_fails, "\n" \
+                    "ends good/bad:", working_ends, "/", not_needed_ends)
             if try_except >= try_attempts:
-                print "calling it a failed population, splitting and rerunning"
+                print ("calling it a failed population, splitting and rerunning")
                 return 'fail'
 
 
     hidden_count = 0
     out_spike_count = [0 for i in range(len(pop))]
     hid_spike_count = [0 for i in range(len(pop))]
-    print "gathering spikes"
+    print ("gathering spikes")
     for i in range(len(pop)):
         if i not in flagged_agents:
             spikes = output_pops[i].get_data('spikes').segments[0].spiketrains
@@ -262,11 +351,11 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
                     for spike in neuron:
                         hid_spike_count[i] += 1
         else:
-            print "flagged ", i
+            print ("flagged ", i)
             out_spike_count[i] = 10000000
             hid_spike_count[i] = 10000000
 
-    print "reached here 2"
+    print ("reached here 2")
     scores = []
     for i in range(len(pop)):
         if i not in flagged_agents:
@@ -277,7 +366,7 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
     pop_fitnesses = []
     for i in range(len(pop)):
         pop_fitnesses.append([scores[i][len(scores[i])-1][0], out_spike_count[i] + hid_spike_count[i]])
-        print i, pop_fitnesses[i]
+        print (i, pop_fitnesses[i])
 
     return pop_fitnesses
 
