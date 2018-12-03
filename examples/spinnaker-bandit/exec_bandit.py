@@ -100,14 +100,16 @@ def connect_genes_to_fromlist(number_of_nodes, connections, nodes):
 
     ex_or_in = {}
     translator = []
-    i = output_size
+    i = 0
     for node in nodes:
         # translator.append([literal_eval(node), i])
         ex_or_in[node] = [nodes[node].activation, i]
-        print(node, ': ', ex_or_in[node])
+        # print(node, ': ', ex_or_in[node])
         i += 1
 
     #individual: Tuples of (innov, from, to, weight, enabled)
+    # if number_of_nodes > 4:
+    #     print('hold it here')
 
     hidden_size = number_of_nodes - output_size - input_size
 
@@ -115,50 +117,50 @@ def connect_genes_to_fromlist(number_of_nodes, connections, nodes):
         c = connections[conn]
         connect_weight = c.weight
         if c.enabled:
-            print('0:', c.key[0], '\t1:', c.key[1])
+            # print('0:', c.key[0], '\t1:', c.key[1])
             if c.key[0] < 0:
                 if c.key[1] < 0:
                     i2i_ex.append((c.key[0]+input_size, c.key[1]+input_size, connect_weight, delay))
                 elif c.key[1] < output_size:
                     i2o_ex.append((c.key[0]+input_size, c.key[1], connect_weight, delay))
-                elif ex_or_in['{}'.format(c.key[1])][1] < hidden_size + output_size:
-                    i2h_ex.append((c.key[0]+input_size, ex_or_in['{}'.format(c.key[1])][1]-output_size, connect_weight, delay))
+                elif ex_or_in[c.key[1]][1] < hidden_size + output_size:
+                    i2h_ex.append((c.key[0]+input_size, ex_or_in[c.key[1]][1]-output_size, connect_weight, delay))
                 else:
                     print("shit broke")
             elif c.key[0] < output_size:
                 if c.key[1] < 0:
-                    if ex_or_in['{}'.format(c.key[0])][0] == 'excitatory':
+                    if ex_or_in[c.key[0]][0] == 'excitatory':
                         o2i_ex.append((c.key[0], c.key[1]+input_size, connect_weight, delay))
                     else:
                         o2i_in.append((c.key[0], c.key[1]+input_size, connect_weight, delay))
                 elif c.key[1] < output_size:
-                    if ex_or_in['{}'.format(c.key[0])][0] == 'excitatory':
+                    if ex_or_in[c.key[0]][0] == 'excitatory':
                         o2o_ex.append((c.key[0], c.key[1], connect_weight, delay))
                     else:
                         o2o_in.append((c.key[0], c.key[1], connect_weight, delay))
-                elif ex_or_in['{}'.format(c.key[1])][1] < hidden_size + output_size:
-                    if ex_or_in['{}'.format(c.key[0])][0] == 'excitatory':
-                        o2h_ex.append((c.key[0], ex_or_in['{}'.format(c.key[1])][1]-output_size, connect_weight, delay))
+                elif ex_or_in[c.key[1]][1] < hidden_size + output_size:
+                    if ex_or_in[c.key[0]][0] == 'excitatory':
+                        o2h_ex.append((c.key[0], ex_or_in[c.key[1]][1]-output_size, connect_weight, delay))
                     else:
-                        o2h_in.append((c.key[0], ex_or_in['{}'.format(c.key[1])][1]-output_size, connect_weight, delay))
+                        o2h_in.append((c.key[0], ex_or_in[c.key[1]][1]-output_size, connect_weight, delay))
                 else:
                     print("shit broke")
-            elif ex_or_in['{}'.format(c.key[0])][1] < hidden_size + output_size:
+            elif ex_or_in[c.key[0]][1] < hidden_size + output_size:
                 if c.key[1] < 0:
-                    if ex_or_in['{}'.format(c.key[0])][0] == 'excitatory':
-                        h2i_ex.append((ex_or_in['{}'.format(c.key[0])][1]-output_size, c.key[1]+input_size, connect_weight, delay))
+                    if ex_or_in[c.key[0]][0] == 'excitatory':
+                        h2i_ex.append((ex_or_in[c.key[0]][1]-output_size, c.key[1]+input_size, connect_weight, delay))
                     else:
-                        h2i_in.append((ex_or_in['{}'.format(c.key[0])][1]-output_size, c.key[1]+input_size, connect_weight, delay))
+                        h2i_in.append((ex_or_in[c.key[0]][1]-output_size, c.key[1]+input_size, connect_weight, delay))
                 elif c.key[1] < output_size:
-                    if ex_or_in['{}'.format(c.key[0])][0] == 'excitatory':
-                        h2o_ex.append((ex_or_in['{}'.format(c.key[0])][1]-output_size, c.key[1], connect_weight, delay))
+                    if ex_or_in[c.key[0]][0] == 'excitatory':
+                        h2o_ex.append((ex_or_in[c.key[0]][1]-output_size, c.key[1], connect_weight, delay))
                     else:
-                        h2o_in.append((ex_or_in['{}'.format(c.key[0])][1]-output_size, c.key[1], connect_weight, delay))
-                elif ex_or_in['{}'.format(c.key[1])][1] < hidden_size + output_size:
-                    if ex_or_in['{}'.format(c.key[0])][0] == 'excitatory':
-                        h2h_ex.append((ex_or_in['{}'.format(c.key[0])][1]-output_size, ex_or_in['{}'.format(c.key[1])][1]-output_size, connect_weight, delay))
+                        h2o_in.append((ex_or_in[c.key[0]][1]-output_size, c.key[1], connect_weight, delay))
+                elif ex_or_in[c.key[1]][1] < hidden_size + output_size:
+                    if ex_or_in[c.key[0]][0] == 'excitatory':
+                        h2h_ex.append((ex_or_in[c.key[0]][1]-output_size, ex_or_in[c.key[1]][1]-output_size, connect_weight, delay))
                     else:
-                        h2h_in.append((ex_or_in['{}'.format(c.key[0])][1]-output_size, ex_or_in['{}'.format(c.key[1])][1]-output_size, connect_weight, delay))
+                        h2h_in.append((ex_or_in[c.key[0]][1]-output_size, ex_or_in[c.key[1]][1]-output_size, connect_weight, delay))
                 else:
                     print("shit broke")
             else:
