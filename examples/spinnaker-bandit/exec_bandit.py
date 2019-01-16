@@ -21,6 +21,7 @@ import csv
 import threading
 import pathos.multiprocessing
 from spinn_front_end_common.utilities import globals_variables
+from spinn_arm.python_models.arm import Arm
 from ast import literal_eval
 
 max_fail_score = -1000000
@@ -195,6 +196,7 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
     while try_except < try_attempts:
         print (config)
         bandit_pops = []
+        bandit_arms = []
         # receive_on_pops = []
         hidden_node_pops = []
         hidden_count = -1
@@ -228,8 +230,17 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
                 bandit_pops.append(p.Population(band.neurons(), band, label="bandit {}".format(i)))
 
                 # Create output population and remaining population
-                output_pops.append(p.Population(output_size, p.IF_cond_exp(), label="output_pop {}".format(i)))
-                p.Projection(output_pops[i], bandit_pops[i], p.OneToOneConnector())
+                arm_collection = []
+                for j in range(len(arms)):
+                    arm_collection.append(p.Population(int(np.ceil(np.log2(len(arms)))),
+                                                       Arm(arm_id=j, reward_delay=duration_of_trial,
+                                                           rand_seed=[np.random.randint(0xffff) for i in range(4)],
+                                                           no_arms=len(arms), arm_prob=1),
+                                                       label='arm_pop{}:{}:{}'.format(i, i, j)))
+                    p.Projection(arm_collection[j], bandit_pops[i], p.AllToAllConnector(), p.StaticSynapse())
+                bandit_arms.append(arm_collection)
+                # output_pops.append(p.Population(output_size, p.IF_cond_exp(), label="output_pop {}".format(i)))
+                # p.Projection(output_pops[i], bandit_pops[i], p.OneToOneConnector())
                 if noise_rate != 0:
                     output_noise = p.Population(output_size, p.SpikeSourcePoisson(rate=noise_rate), label="output noise")
                     p.Projection(output_noise, output_pops[i], p.OneToOneConnector(),
