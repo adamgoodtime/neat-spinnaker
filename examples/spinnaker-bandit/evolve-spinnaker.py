@@ -9,8 +9,8 @@ import visualize
 from ast import literal_eval
 import csv
 
-# arms = [[0.9, 0.1], [0.1, 0.9]]
-arms = [[0, 1], [1, 0]]
+arms = [[0.9, 0.1], [0.1, 0.9], [0.9, 0.1], [0.1, 0.9], [0.9, 0.1], [0.1, 0.9]]
+# arms = [[0, 1], [1, 0]]
 # arms = [[0, 1]]
 
 number_of_arms = 2
@@ -120,6 +120,7 @@ def run(config_file, SpiNNaker=True):
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(neat_config)
 
+    p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-21')
     # Add a stdout reporter to show progress in the terminal.
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
@@ -147,7 +148,7 @@ def run(config_file, SpiNNaker=True):
     visualize.plot_stats(stats, ylog=False, view=True)
     visualize.plot_species(stats, view=True)
 
-    p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-4')
+    p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-21')
     p.run(eval_genomes, 10)
 
 
