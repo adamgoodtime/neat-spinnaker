@@ -81,7 +81,7 @@ def spinn_genomes(genomes, neat_config):
     execfile("exec_bandit.py", globals())
     fitnesses = read_fitnesses(config)
     sorted_metrics = []
-    combined_spikes = [[0, i] for i in range(len(genomes))]
+    # combined_spikes = [[0, i] for i in range(len(genomes))]
     for i in range(len(fitnesses)):
         indexed_metric = []
         for j in range(len(fitnesses[i])):
@@ -89,11 +89,11 @@ def spinn_genomes(genomes, neat_config):
                 indexed_metric.append([-10000000, j])
             else:
                 indexed_metric.append([fitnesses[i][j][0], j])
-            combined_spikes[j][0] -= fitnesses[i][j][1]
+            # combined_spikes[j][0] -= fitnesses[i][j][1]
         indexed_metric.sort()
         sorted_metrics.append(indexed_metric)
-    combined_spikes.sort()
-    sorted_metrics.append(combined_spikes)
+    # combined_spikes.sort()
+    # sorted_metrics.append(combined_spikes)
 
     if grooming != 'cap':
         combined_fitnesses = [0 for i in range(len(genomes))]
@@ -120,7 +120,7 @@ def run(config_file, SpiNNaker=True):
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(neat_config)
 
-    p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-21')
+    # p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-21')
     # Add a stdout reporter to show progress in the terminal.
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
