@@ -8,8 +8,14 @@ import neat
 import visualize
 from ast import literal_eval
 import csv
-
-arms = [[0.9, 0.1], [0.1, 0.9], [0.9, 0.1], [0.1, 0.9], [0.9, 0.1], [0.1, 0.9]]
+arm1 = 0.9
+arm2 = 0.1
+# arm3 = 0.1
+arm_len = 4
+arms = []
+for i in range(arm_len):
+    arms.append([arm1, arm2])
+    arms.append([arm2, arm1])
 # arms = [[0, 1], [1, 0]]
 # arms = [[0, 1]]
 
