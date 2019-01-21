@@ -8,6 +8,7 @@ import neat
 import visualize
 from ast import literal_eval
 import csv
+import numpy as np
 arm1 = 0.9
 arm2 = 0.1
 # arm3 = 0.1
@@ -27,7 +28,7 @@ grooming = 'cap'
 reward_based = 0
 spike_cap = 30000
 spike_weight = 0.1
-noise_rate = 100
+noise_rate = 0
 noise_weight = 0.01
 keys = ['fitness']
 
@@ -61,6 +62,12 @@ config = 'a{}:{} -e{} - c{} - s{} - n{}-{} - g{} - r{}'.format(number_of_arms, a
 input_size = 2
 output_size = number_of_arms
 
+best_fitness = []
+average_fitness = []
+worst_fitness = []
+
+stats = None
+
 def read_fitnesses(config):
     fitnesses = []
     file_name = 'fitnesses {}.csv'.format(config)
@@ -81,7 +88,25 @@ def eval_genomes(genomes, config):
             output = net.activate(xi)
             genome.fitness -= (output[0] - xo[0]) ** 2
 
+def save_stats():
+    statistics = stats
+    generation = len(statistics.most_fit_genomes)
+    best_fitness = [c.fitness for c in statistics.most_fit_genomes]
+    avg_fitness = np.array(statistics.get_fitness_mean())
+    stdev_fitness = np.array(statistics.get_fitness_stdev())
+    with open('NEAT bandit stats {}.csv'.format(config), 'w') as file:
+        writer = csv.writer(file, delimiter=',', lineterminator='\n')
+        writer.writerow(['Iteration: {}'.format(generation)])
+        writer.writerow(['Best fitness'])
+        writer.writerow(best_fitness)
+        writer.writerow(['Average fitness'])
+        writer.writerow(avg_fitness)
+        writer.writerow(['Standard dev fitness'])
+        writer.writerow(stdev_fitness)
+        file.close()
+
 def spinn_genomes(genomes, neat_config):
+    save_stats()
     globals()['pop'] = genomes
     globals()['arms'] = arms
     execfile("exec_bandit.py", globals())
@@ -118,6 +143,7 @@ def spinn_genomes(genomes, neat_config):
 
 
 def run(config_file, SpiNNaker=True):
+    global stats
     # Load configuration.
     neat_config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
@@ -126,7 +152,7 @@ def run(config_file, SpiNNaker=True):
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(neat_config)
 
-    # p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-21')
+    # p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-55')
     # Add a stdout reporter to show progress in the terminal.
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
@@ -144,7 +170,7 @@ def run(config_file, SpiNNaker=True):
 
     # Show output of the most fit genome against training data.
     print('\nOutput:')
-    winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
+    winner_net = neat.nn.FeedForwardNetwork.create(winner, neat_config)
     # for xi, xo in zip(xor_inputs, xor_outputs):
     #     output = winner_net.activate(xi)
     #     print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
