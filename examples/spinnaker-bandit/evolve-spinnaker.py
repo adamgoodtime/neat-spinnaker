@@ -161,9 +161,9 @@ def run(config_file, SpiNNaker=True):
 
     # Run for up to 300 generations.
     if SpiNNaker:
-        winner = p.run(spinn_genomes, 300)
+        winner = p.run(spinn_genomes, 1000)
     else:
-        winner = p.run(eval_genomes, 300)
+        winner = p.run(eval_genomes, 1000)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
