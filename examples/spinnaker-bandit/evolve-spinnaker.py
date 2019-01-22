@@ -9,10 +9,12 @@ import visualize
 from ast import literal_eval
 import csv
 import numpy as np
-arm1 = 0.9
-arm2 = 0.1
+import time
+
+arm1 = 1
+arm2 = 0
 # arm3 = 0.1
-arm_len = 4
+arm_len = 1
 arms = []
 for i in range(arm_len):
     arms.append([arm1, arm2])
@@ -103,6 +105,10 @@ def save_stats():
         writer.writerow(avg_fitness)
         writer.writerow(['Standard dev fitness'])
         writer.writerow(stdev_fitness)
+        writer.writerow(['Current time'])
+        writer.writerow([time.localtime()])
+        writer.writerow(['Config'])
+        writer.writerow([config])
         file.close()
 
 def spinn_genomes(genomes, neat_config):
