@@ -26,6 +26,7 @@ number_of_arms = 2
 number_of_epochs = 2
 complimentary = True
 shared_probabilities = True
+shape_fitness = False
 grooming = 'cap'
 reward_based = 0
 spike_cap = 30000
@@ -57,9 +58,9 @@ weight = 0.1
 # exec_bandit = False
 exec_bandit = True
 
-config = 'a{}:{} -e{} - c{} - s{} - n{}-{} - g{} - r{}'.format(number_of_arms, arms[0], number_of_epochs, complimentary,
+config = 'a{}:{} -e{} - c{} - s{} - n{}-{} - g{} - r{} - sf{}'.format(number_of_arms, arms[0], number_of_epochs, complimentary,
                                                                         shared_probabilities, noise_rate, noise_weight,
-                                                                        grooming, reward_based)
+                                                                        grooming, reward_based, shape_fitness)
 
 input_size = 2
 output_size = number_of_arms
@@ -118,30 +119,36 @@ def spinn_genomes(genomes, neat_config):
     execfile("exec_bandit.py", globals())
     fitnesses = read_fitnesses(config)
     sorted_metrics = []
+    combined_fitnesses = [0 for i in range(len(genomes))]
     # combined_spikes = [[0, i] for i in range(len(genomes))]
-    for i in range(len(fitnesses)):
-        indexed_metric = []
-        for j in range(len(fitnesses[i])):
-            if fitnesses[i][j][0] == 'fail':
-                indexed_metric.append([-10000000, j])
-            else:
-                indexed_metric.append([fitnesses[i][j][0], j])
-            # combined_spikes[j][0] -= fitnesses[i][j][1]
-        indexed_metric.sort()
-        sorted_metrics.append(indexed_metric)
-    # combined_spikes.sort()
-    # sorted_metrics.append(combined_spikes)
+    if shape_fitness:
+        for i in range(len(fitnesses)):
+            indexed_metric = []
+            for j in range(len(fitnesses[i])):
+                if fitnesses[i][j][0] == 'fail':
+                    indexed_metric.append([-10000000, j])
+                else:
+                    indexed_metric.append([fitnesses[i][j][0], j])
+                # combined_spikes[j][0] -= fitnesses[i][j][1]
+            indexed_metric.sort()
+            sorted_metrics.append(indexed_metric)
+        # combined_spikes.sort()
+        # sorted_metrics.append(combined_spikes)
 
-    if grooming != 'cap':
-        combined_fitnesses = [0 for i in range(len(genomes))]
-        for i in range(len(genomes)):
-            for j in range(len(sorted_metrics)):
-                combined_fitnesses[sorted_metrics[j][i][1]] += i
+        if grooming != 'cap':
+            # combined_fitnesses = [0 for i in range(len(genomes))]
+            for i in range(len(genomes)):
+                for j in range(len(sorted_metrics)):
+                    combined_fitnesses[sorted_metrics[j][i][1]] += i
+        else:
+            # combined_fitnesses = [0 for i in range(len(genomes))]
+            for i in range(len(genomes)):
+                for j in range(len(arms)):
+                    combined_fitnesses[sorted_metrics[j][i][1]] += sorted_metrics[j][i][0]
     else:
-        combined_fitnesses = [0 for i in range(len(genomes))]
-        for i in range(len(genomes)):
-            for j in range(len(arms)):
-                combined_fitnesses[sorted_metrics[j][i][1]] += sorted_metrics[j][i][0]
+        for i in range(len(fitnesses)):
+            for j in range(len(fitnesses[i])):
+                combined_fitnesses[j] = fitnesses[i][j]
     i = 0
     for genome_id, genome in genomes:
         genome.fitness = combined_fitnesses[i]
