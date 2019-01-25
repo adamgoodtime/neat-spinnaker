@@ -51,7 +51,7 @@ empty_post_count = 0
 
 weight_max = 1.0
 weight_scale = 1.0
-delay = 1
+delay = 10
 
 weight = 0.1
 
