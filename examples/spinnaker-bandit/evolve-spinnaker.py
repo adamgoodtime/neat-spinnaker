@@ -146,12 +146,13 @@ def spinn_genomes(genomes, neat_config):
         # sorted_metrics.append(combined_spikes)
 
         # combined_fitnesses = [0 for i in range(len(genomes))]
-        counter = 0
-        for i in range(len(genomes)):
-            for j in range(len(sorted_metrics)):
+        for j in range(len(sorted_metrics)):
+            counter = 0
+            for i in range(len(genomes)):
                 if i == 0:
-                    None
+                    print('none')
                 elif combined_fitnesses[sorted_metrics[j][i][1]] != combined_fitnesses[sorted_metrics[j][i-1][1]]:
+                    print('incrementing counter', i)
                     counter = i
                 combined_fitnesses[sorted_metrics[j][i][1]] += counter
                 combined_scores[sorted_metrics[j][i][1]] += sorted_metrics[j][i][0]
@@ -172,7 +173,7 @@ def spinn_genomes(genomes, neat_config):
     worst_score.append(combined_scores[0])
     combined_scores.sort(reverse=True)
     best_score.append(combined_scores[0])
-    average_score.append(combined_scores[0])
+    average_score.append(np.average(combined_scores[0]))
 
 
 def run(config_file, SpiNNaker=True):
