@@ -146,9 +146,14 @@ def spinn_genomes(genomes, neat_config):
         # sorted_metrics.append(combined_spikes)
 
         # combined_fitnesses = [0 for i in range(len(genomes))]
+        counter = 0
         for i in range(len(genomes)):
             for j in range(len(sorted_metrics)):
-                combined_fitnesses[sorted_metrics[j][i][1]] += i
+                if i == 0:
+                    None
+                elif combined_fitnesses[sorted_metrics[j][i][1]] != combined_fitnesses[sorted_metrics[j][i-1][1]]:
+                    counter = i
+                combined_fitnesses[sorted_metrics[j][i][1]] += counter
                 combined_scores[sorted_metrics[j][i][1]] += sorted_metrics[j][i][0]
     else:
         for i in range(len(fitnesses)):
@@ -157,8 +162,10 @@ def spinn_genomes(genomes, neat_config):
     i = 0
     for genome_id, genome in genomes:
         if grooming == 'rank':
+            print("f ", combined_fitnesses[i])
             genome.fitness = combined_fitnesses[i]
         else:
+            print("s ", combined_scores[i])
             genome.fitness = combined_scores[i]
         i += 1
     combined_scores.sort()
