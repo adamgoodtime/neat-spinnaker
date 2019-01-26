@@ -27,7 +27,7 @@ number_of_epochs = 2
 complimentary = True
 shared_probabilities = True
 shape_fitness = False
-grooming = 'cap'
+grooming = 'rank'
 reward_based = 0
 spike_cap = 30000
 spike_weight = 0.1
@@ -68,6 +68,9 @@ output_size = number_of_arms
 best_fitness = []
 average_fitness = []
 worst_fitness = []
+best_score = []
+average_score = []
+worst_score = []
 
 stats = None
 
@@ -106,6 +109,12 @@ def save_stats():
         writer.writerow(avg_fitness)
         writer.writerow(['Standard dev fitness'])
         writer.writerow(stdev_fitness)
+        writer.writerow(['Best score'])
+        writer.writerow(best_score)
+        writer.writerow(['Average score'])
+        writer.writerow(average_score)
+        writer.writerow(['Worst score'])
+        writer.writerow(worst_score)
         writer.writerow(['Current time'])
         writer.writerow([time.localtime()])
         writer.writerow(['Config'])
@@ -120,6 +129,7 @@ def spinn_genomes(genomes, neat_config):
     fitnesses = read_fitnesses(config)
     sorted_metrics = []
     combined_fitnesses = [0 for i in range(len(genomes))]
+    combined_scores = [0 for i in range(len(genomes))]
     # combined_spikes = [[0, i] for i in range(len(genomes))]
     if shape_fitness:
         for i in range(len(fitnesses)):
@@ -135,24 +145,27 @@ def spinn_genomes(genomes, neat_config):
         # combined_spikes.sort()
         # sorted_metrics.append(combined_spikes)
 
-        if grooming != 'cap':
-            # combined_fitnesses = [0 for i in range(len(genomes))]
-            for i in range(len(genomes)):
-                for j in range(len(sorted_metrics)):
-                    combined_fitnesses[sorted_metrics[j][i][1]] += i
-        else:
-            # combined_fitnesses = [0 for i in range(len(genomes))]
-            for i in range(len(genomes)):
-                for j in range(len(arms)):
-                    combined_fitnesses[sorted_metrics[j][i][1]] += sorted_metrics[j][i][0]
+        # combined_fitnesses = [0 for i in range(len(genomes))]
+        for i in range(len(genomes)):
+            for j in range(len(sorted_metrics)):
+                combined_fitnesses[sorted_metrics[j][i][1]] += i
+                combined_scores[sorted_metrics[j][i][1]] += sorted_metrics[j][i][0]
     else:
         for i in range(len(fitnesses)):
             for j in range(len(fitnesses[i])):
                 combined_fitnesses[j] = fitnesses[i][j]
     i = 0
     for genome_id, genome in genomes:
-        genome.fitness = combined_fitnesses[i]
+        if grooming == 'rank':
+            genome.fitness = combined_fitnesses[i]
+        else:
+            genome.fitness = combined_scores[i]
         i += 1
+    combined_scores.sort()
+    worst_score.append(combined_scores[0])
+    combined_scores.sort(reverse=True)
+    best_score.append(combined_scores[0])
+    average_score.append(combined_scores[0])
 
 
 def run(config_file, SpiNNaker=True):
