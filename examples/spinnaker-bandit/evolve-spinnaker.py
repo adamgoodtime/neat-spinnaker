@@ -22,11 +22,14 @@ for i in range(arm_len):
 # arms = [[0, 1], [1, 0]]
 # arms = [[0, 1]]
 
+exec_thing = 'xor'
+if exec_thing == 'xor':
+    arms = [[0, 0], [0, 1], [1, 0], [1, 1]]
 number_of_arms = 2
 number_of_epochs = 2
 complimentary = True
 shared_probabilities = True
-shape_fitness = True
+shape_fitness = False
 grooming = 'rank'
 reward_based = 0
 spike_cap = 30000
@@ -125,7 +128,10 @@ def spinn_genomes(genomes, neat_config):
     save_stats()
     globals()['pop'] = genomes
     globals()['arms'] = arms
-    execfile("exec_bandit.py", globals())
+    if exec_thing == 'arms':
+        execfile("exec_bandit.py", globals())
+    else:
+        execfile("exec_xor.py", globals())
     fitnesses = read_fitnesses(config)
     sorted_metrics = []
     combined_fitnesses = [0 for i in range(len(genomes))]
@@ -135,10 +141,16 @@ def spinn_genomes(genomes, neat_config):
         for i in range(len(fitnesses)):
             indexed_metric = []
             for j in range(len(fitnesses[i])):
-                if fitnesses[i][j][0] == 'fail':
-                    indexed_metric.append([-10000000, j])
+                if exec_thing == 'xor':
+                    if fitnesses[i][j] == 'fail':
+                        indexed_metric.append([-10000000, j])
+                    else:
+                        indexed_metric.append([fitnesses[i][j], j])
                 else:
-                    indexed_metric.append([fitnesses[i][j][0], j])
+                    if fitnesses[i][j][0] == 'fail':
+                        indexed_metric.append([-10000000, j])
+                    else:
+                        indexed_metric.append([fitnesses[i][j][0], j])
                 # combined_spikes[j][0] -= fitnesses[i][j][1]
             indexed_metric.sort()
             sorted_metrics.append(indexed_metric)
