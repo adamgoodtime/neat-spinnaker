@@ -22,7 +22,7 @@ for i in range(arm_len):
 # arms = [[0, 1], [1, 0]]
 # arms = [[0, 1]]
 
-exec_thing = 'xor'
+exec_thing = 'arms'
 if exec_thing == 'xor':
     arms = [[0, 0], [0, 1], [1, 0], [1, 1]]
 number_of_arms = 2
@@ -137,20 +137,14 @@ def spinn_genomes(genomes, neat_config):
     combined_fitnesses = [0 for i in range(len(genomes))]
     combined_scores = [0 for i in range(len(genomes))]
     # combined_spikes = [[0, i] for i in range(len(genomes))]
-    if shape_fitness:
+    if exec_thing != 'xor':
         for i in range(len(fitnesses)):
             indexed_metric = []
             for j in range(len(fitnesses[i])):
-                if exec_thing == 'xor':
-                    if fitnesses[i][j] == 'fail':
-                        indexed_metric.append([-10000000, j])
-                    else:
-                        indexed_metric.append([fitnesses[i][j], j])
+                if fitnesses[i][j][0] == 'fail':
+                    indexed_metric.append([-10000000, j])
                 else:
-                    if fitnesses[i][j][0] == 'fail':
-                        indexed_metric.append([-10000000, j])
-                    else:
-                        indexed_metric.append([fitnesses[i][j][0], j])
+                    indexed_metric.append([fitnesses[i][j][0], j])
                 # combined_spikes[j][0] -= fitnesses[i][j][1]
             indexed_metric.sort()
             sorted_metrics.append(indexed_metric)
@@ -158,11 +152,9 @@ def spinn_genomes(genomes, neat_config):
         # sorted_metrics.append(combined_spikes)
 
         # combined_fitnesses = [0 for i in range(len(genomes))]
-        for j in range(len(sorted_metrics)):
-            counter = 0
-            for i in range(len(genomes)):
-                for j in range(len(arms)):
-                    combined_fitnesses[sorted_metrics[j][i][1]] += sorted_metrics[j][i][0]
+        for i in range(len(genomes)):
+            for j in range(len(arms)):
+                combined_fitnesses[sorted_metrics[j][i][1]] += sorted_metrics[j][i][0]
     else:
         for i in range(len(fitnesses)):
             for j in range(len(fitnesses[i])):

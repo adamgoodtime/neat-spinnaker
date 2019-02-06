@@ -185,6 +185,14 @@ def connect_to_arms(pre_pop, from_list, arms, r_type):
         if len(arm_conn_list[i]) != 0:
             p.Projection(pre_pop, arms[i], p.FromListConnector(arm_conn_list[i]), p.StaticSynapse(), receptor_type=r_type)
 
+def parse_connections(from_list):
+    new_list = []
+    for conn in from_list:
+        new_conn = deepcopy(conn)
+        # conn[2] = 0.1
+        new_list.append((conn[0], conn[1], 0.1, conn[3]))
+    return new_list
+
 def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
     #test the whole population and return scores
     global all_fails
@@ -214,7 +222,7 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
         hidden_node_pops = []
         hidden_count = -1
         hidden_marker = []
-        # output_pops = []
+        output_pops = []
         # Setup pyNN simulation
         try:
             p.setup(timestep=1.0)
@@ -243,21 +251,26 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
                 bandit_pops.append(p.Population(band.neurons(), band, label="bandit {}".format(i)))
 
                 # Create output population and remaining population
-                arm_collection = []
-                for j in range(len(arms)):
-                    arm_collection.append(p.Population(int(np.ceil(np.log2(len(arms)))),
-                                                       Arm(arm_id=j, reward_delay=duration_of_trial,
-                                                           rand_seed=[np.random.randint(0xffff) for k in range(4)],
-                                                           no_arms=len(arms), arm_prob=1),
-                                                       label='arm_pop{}:{}'.format(i, j)))
-                    p.Projection(arm_collection[j], bandit_pops[i], p.AllToAllConnector(), p.StaticSynapse())
-                bandit_arms.append(arm_collection)
-                # output_pops.append(p.Population(output_size, p.IF_cond_exp(), label="output_pop {}".format(i)))
-                # p.Projection(output_pops[i], bandit_pops[i], p.OneToOneConnector())
-                # if noise_rate != 0:
-                #     output_noise = p.Population(output_size, p.SpikeSourcePoisson(rate=noise_rate), label="output noise")
-                #     p.Projection(output_noise, output_pops[i], p.OneToOneConnector(),
-                #                  p.StaticSynapse(weight=noise_weight), receptor_type='excitatory')
+                # arm_collection = []
+                # for j in range(len(arms)):
+                #     arm_collection.append(p.Population(int(np.ceil(np.log2(len(arms)))),
+                #                                        Arm(arm_id=j, reward_delay=duration_of_trial,
+                #                                            rand_seed=[np.random.randint(0xffff) for k in range(4)],
+                #                                            no_arms=len(arms), arm_prob=1),
+                #                                        label='arm_pop{}:{}'.format(i, j)))
+                #     p.Projection(arm_collection[j], bandit_pops[i], p.AllToAllConnector(), p.StaticSynapse())
+                # bandit_arms.append(arm_collection)
+                output_pops.append(p.Population(len(arms), p.IF_cond_exp(tau_m=0.5,  # parameters for a fast membrane
+                                                                         tau_refrac=0,
+                                                                         v_thresh=-64,
+                                                                         tau_syn_E=0.5,
+                                                                         tau_syn_I=0.5),
+                                                label='output_pop_{}'.format(i)))
+                p.Projection(output_pops[i], bandit_pops[i], p.AllToAllConnector())
+                if noise_rate != 0:
+                    output_noise = p.Population(len(arms), p.SpikeSourcePoisson(rate=noise_rate), label="output noise")
+                    p.Projection(output_noise, output_pops[i], p.OneToOneConnector(),
+                                 p.StaticSynapse(weight=noise_weight), receptor_type='excitatory')
 
                 if hidden_size != 0:
                     hidden_node_pops.append(p.Population(hidden_size, p.IF_cond_exp(), label="hidden_pop {}".format(i)))
@@ -280,10 +293,11 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
                     p.Projection(bandit_pops[i], hidden_node_pops[hidden_count], connection,
                                  receptor_type='excitatory')
                 if len(i2o_ex) != 0:
-                    connect_to_arms(bandit_pops[i], i2o_ex, bandit_arms[i], 'excitatory')
-                    # connection = p.FromListConnector(i2o_ex)
-                    # p.Projection(bandit_pops[i], output_pops[i], connection,
-                    #              receptor_type='excitatory')
+                    # connect_to_arms(bandit_pops[i], i2o_ex, bandit_arms[i], 'excitatory')
+                    i2o_ex = parse_connections(i2o_ex)
+                    connection = p.FromListConnector(i2o_ex)
+                    p.Projection(bandit_pops[i], output_pops[i], connection,
+                                 receptor_type='excitatory')
                 # if len(h2i_ex) != 0:
                 #     p.Projection(hidden_node_pops[hidden_count], bandit_pops[i], p.FromListConnector(h2i_ex),
                 #                  receptor_type='excitatory')
@@ -291,18 +305,20 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
                     p.Projection(hidden_node_pops[hidden_count], hidden_node_pops[hidden_count], p.FromListConnector(h2h_ex),
                                  receptor_type='excitatory')
                 if len(h2o_ex) != 0:
-                    connect_to_arms(hidden_node_pops[hidden_count], h2o_ex, bandit_arms[i], 'excitatory')
-                    # p.Projection(hidden_node_pops[hidden_count], output_pops[i], p.FromListConnector(h2o_ex),
-                    #              receptor_type='excitatory')
+                    h2o_ex = parse_connections(h2o_ex)
+                    # connect_to_arms(hidden_node_pops[hidden_count], h2o_ex, bandit_arms[i], 'excitatory')
+                    p.Projection(hidden_node_pops[hidden_count], output_pops[i], p.FromListConnector(h2o_ex),
+                                 receptor_type='excitatory')
                 # if len(o2i_ex) != 0:
                 #     p.Projection(output_pops[i], bandit_pops[i], p.FromListConnector(o2i_ex),
                 #                  receptor_type='excitatory')
-                # if len(o2h_ex) != 0:
-                #     p.Projection(output_pops[i], hidden_node_pops[hidden_count], p.FromListConnector(o2h_ex),
-                #                  receptor_type='excitatory')
-                # if len(o2o_ex) != 0:
-                #     p.Projection(output_pops[i], output_pops[i], p.FromListConnector(o2o_ex),
-                #                  receptor_type='excitatory')
+                if len(o2h_ex) != 0:
+                    p.Projection(output_pops[i], hidden_node_pops[hidden_count], p.FromListConnector(o2h_ex),
+                                 receptor_type='excitatory')
+                if len(o2o_ex) != 0:
+                    o2o_ex = parse_connections(o2o_ex)
+                    p.Projection(output_pops[i], output_pops[i], p.FromListConnector(o2o_ex),
+                                 receptor_type='excitatory')
                 # if len(i2i_in) != 0:
                 #     p.Projection(bandit_pops[i], bandit_pops[i], p.FromListConnector(i2i_in),
                 #                  receptor_type='inhibitory')
@@ -310,9 +326,10 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
                     p.Projection(bandit_pops[i], hidden_node_pops[hidden_count], p.FromListConnector(i2h_in),
                                  receptor_type='inhibitory')
                 if len(i2o_in) != 0:
-                    connect_to_arms(bandit_pops[i], i2o_in, bandit_arms[i], 'inhibitory')
-                    # p.Projection(bandit_pops[i], output_pops[i], p.FromListConnector(i2o_in),
-                    #              receptor_type='inhibitory')
+                    i2o_in = parse_connections(i2o_in)
+                    # connect_to_arms(bandit_pops[i], i2o_in, bandit_arms[i], 'inhibitory')
+                    p.Projection(bandit_pops[i], output_pops[i], p.FromListConnector(i2o_in),
+                                 receptor_type='inhibitory')
                 # if len(h2i_in) != 0:
                 #     p.Projection(hidden_node_pops[hidden_count], bandit_pops[i], p.FromListConnector(h2i_in),
                 #                  receptor_type='inhibitory')
@@ -320,18 +337,20 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
                     p.Projection(hidden_node_pops[hidden_count], hidden_node_pops[hidden_count], p.FromListConnector(h2h_in),
                                  receptor_type='inhibitory')
                 if len(h2o_in) != 0:
-                    connect_to_arms(hidden_node_pops[hidden_count], h2o_in, bandit_arms[i], 'inhibitory')
-                    # p.Projection(hidden_node_pops[hidden_count], output_pops[i], p.FromListConnector(h2o_in),
-                    #              receptor_type='inhibitory')
+                    h2o_in = parse_connections(h2o_in)
+                    # connect_to_arms(hidden_node_pops[hidden_count], h2o_in, bandit_arms[i], 'inhibitory')
+                    p.Projection(hidden_node_pops[hidden_count], output_pops[i], p.FromListConnector(h2o_in),
+                                 receptor_type='inhibitory')
                 # if len(o2i_in) != 0:
                 #     p.Projection(output_pops[i], bandit_pops[i], p.FromListConnector(o2i_in),
                 #                  receptor_type='inhibitory')
-                # if len(o2h_in) != 0:
-                #     p.Projection(output_pops[i], hidden_node_pops[hidden_count], p.FromListConnector(o2h_in),
-                #                  receptor_type='inhibitory')
-                # if len(o2o_in) != 0:
-                #     p.Projection(output_pops[i], output_pops[i], p.FromListConnector(o2o_in),
-                #                  receptor_type='inhibitory')
+                if len(o2h_in) != 0:
+                    p.Projection(output_pops[i], hidden_node_pops[hidden_count], p.FromListConnector(o2h_in),
+                                 receptor_type='inhibitory')
+                if len(o2o_in) != 0:
+                    o2o_in = parse_connections(o2o_in)
+                    p.Projection(output_pops[i], output_pops[i], p.FromListConnector(o2o_in),
+                                 receptor_type='inhibitory')
                 # if len(i2i_in) == 0 and len(i2i_ex) == 0 and \
                 if len(i2h_in) == 0 and len(i2h_ex) == 0and \
                         len(i2o_in) == 0 and len(i2o_ex) == 0:
