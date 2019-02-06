@@ -166,7 +166,13 @@ def spinn_genomes(genomes, neat_config):
     else:
         for i in range(len(fitnesses)):
             for j in range(len(fitnesses[i])):
-                combined_fitnesses[j] = fitnesses[i][j]
+                combined_fitnesses[j] += fitnesses[i][j]
+    i = 0
+    for i in range(len(fitnesses[i])):
+        print ("{:4} | ".format(i), end=" ")
+        for j in range(len(fitnesses)):
+            print (" {:3}".format(fitnesses[j][i]), end=" ")
+        print (" \t {:3}".format(combined_fitnesses[i]))
     i = 0
     for genome_id, genome in genomes:
         genome.fitness = combined_fitnesses[i]
