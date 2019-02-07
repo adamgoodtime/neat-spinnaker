@@ -114,7 +114,7 @@ def connect_genes_to_fromlist(number_of_nodes, connections, nodes):
     # if number_of_nodes > 4:
     #     print('hold it here')
 
-    hidden_size = number_of_nodes - output_size - input_size
+    hidden_size = number_of_nodes - output_size
 
     for conn in connections:
         c = connections[conn]
@@ -252,7 +252,7 @@ def test_pop(pop, local_arms):#, noise_rate=50, noise_weight=1):
         for i in range(len(pop)):
             if i not in flagged_agents:
                 number_of_nodes = len(pop[i][1].nodes) + len(local_arms)
-                hidden_size = number_of_nodes - output_size - input_size
+                hidden_size = number_of_nodes - output_size
 
                 [i2i_ex, i2h_ex, i2o_ex, h2i_ex, h2h_ex, h2o_ex, o2i_ex, o2h_ex, o2o_ex, i2i_in, i2h_in, i2o_in, h2i_in, h2h_in, h2o_in, o2i_in, o2h_in, o2o_in] = \
                     connect_genes_to_fromlist(number_of_nodes, pop[i][1].connections, pop[i][1].nodes)
@@ -433,7 +433,9 @@ def print_fitnesses(fitnesses):
     #     file.close()
 
 
-
-fitnesses = thread_bandit(pop, arms)
+if threading_tests:
+    fitnesses = thread_bandit(pop, arms)
+else:
+    fitnesses = test_pop(pop, arms[0])
 
 print_fitnesses(fitnesses)

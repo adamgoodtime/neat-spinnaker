@@ -25,11 +25,9 @@ for i in range(arm_len):
 exec_thing = 'arms'
 if exec_thing == 'xor':
     arms = [[0, 0], [0, 1], [1, 0], [1, 1]]
-number_of_arms = 2
-number_of_epochs = 2
-complimentary = True
 shared_probabilities = True
 shape_fitness = False
+spike_fitness = False
 grooming = 'rank'
 reward_based = 0
 spike_cap = 30000
@@ -52,21 +50,50 @@ not_needed_ends = 0
 # empty_pre_count = 0
 empty_post_count = 0
 
+'''remember to change inputs and outputs in the config as well'''
+
+encoding = 1
+time_increment = 20
+pole_length = 1
+pole_angle = [[0.1], [0.2], [-0.1], [-0.2]]
+reward_based = 1
+force_increments = 100
+max_firing_rate = 50
+number_of_bins = 3
+central = 1
+bin_overlap = 2
+tau_force = 0
+
 weight_max = 1.0
 weight_scale = 1.0
 delay = 10
 
 weight = 0.1
 
-# exec_bandit = False
-exec_bandit = True
+threading_tests = True
 
-config = 'a{}:{} -e{} - c{} - s{} - n{}-{} - g{} - r{} - sf{}'.format(number_of_arms, arms[0], number_of_epochs, complimentary,
-                                                                        shared_probabilities, noise_rate, noise_weight,
-                                                                        grooming, reward_based, shape_fitness)
+if exec_thing == 'pen':
+    input_size = number_of_bins * 4
+    output_size = 2
+    config = 'pend-an{}-{}-F{}-R{}-B{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins)
+    test_data_set = pole_angle
+else:
+    input_size = 2
+    output_size = len(arms[0])
+    config = 'bandit {}-{}'.format(arms[0], len(arms))
+    test_data_set = arms
 
-input_size = 2
-output_size = number_of_arms
+config += ' reward {}'.format(reward_based)
+if spike_fitness:
+    if spike_fitness == 'out':
+        config += ' out-spikes'
+    else:
+        config += ' spikes'
+if shape_fitness:
+    config += ' shape'
+if noise_rate:
+    config += ' noise {}-{}'.format(noise_rate, noise_weight)
+
 
 best_fitness = []
 average_fitness = []
@@ -125,14 +152,27 @@ def save_stats():
         file.close()
 
 def spinn_genomes(genomes, neat_config):
+    global input_size, output_size
+    input_size = neat_config.genome_config.num_inputs
     save_stats()
     globals()['pop'] = genomes
-    globals()['arms'] = arms
-    if exec_thing == 'arms':
-        execfile("exec_bandit.py", globals())
-    else:
+    if exec_thing == 'xor':
         execfile("exec_xor.py", globals())
+    else:
+        execfile("exec_general.py", globals())
     fitnesses = read_fitnesses(config)
+    if spike_fitness:
+        agent_spikes = []
+        for k in range(neat_config.pop_size):
+            spike_total = 0
+            for j in range(len(test_data_set)):
+                if isinstance(fitnesses[j][k], list):
+                    spike_total -= fitnesses[j][k][1]
+                    fitnesses[j][k] = fitnesses[j][k][0]
+                else:
+                    spike_total -= 1000000
+            agent_spikes.append(spike_total)
+        fitnesses.append(agent_spikes)
     sorted_metrics = []
     combined_fitnesses = [0 for i in range(len(genomes))]
     combined_scores = [0 for i in range(len(genomes))]
@@ -141,10 +181,10 @@ def spinn_genomes(genomes, neat_config):
         for i in range(len(fitnesses)):
             indexed_metric = []
             for j in range(len(fitnesses[i])):
-                if fitnesses[i][j][0] == 'fail':
+                if fitnesses[i][j] == 'fail':
                     indexed_metric.append([-10000000, j])
                 else:
-                    indexed_metric.append([fitnesses[i][j][0], j])
+                    indexed_metric.append([fitnesses[i][j], j])
                 # combined_spikes[j][0] -= fitnesses[i][j][1]
             indexed_metric.sort()
             sorted_metrics.append(indexed_metric)
@@ -159,12 +199,13 @@ def spinn_genomes(genomes, neat_config):
         for i in range(len(fitnesses)):
             for j in range(len(fitnesses[i])):
                 combined_fitnesses[j] += fitnesses[i][j]
+                # add spikes to fitness here somehow if you want
     i = 0
     for i in range(len(fitnesses[i])):
         print ("{:4} | ".format(i), end=" ")
         for j in range(len(fitnesses)):
-            print (" {:3}".format(fitnesses[j][i]), end=" ")
-        print (" \t {:3}".format(combined_fitnesses[i]))
+            print (" {:6}".format(fitnesses[j][i]), end=" ")
+        print (" \t {:6}".format(combined_fitnesses[i]))
     i = 0
     for genome_id, genome in genomes:
         genome.fitness = combined_fitnesses[i]
@@ -209,8 +250,8 @@ def run(config_file, SpiNNaker=True):
     visualize.plot_stats(stats, ylog=False, view=True)
     visualize.plot_species(stats, view=True)
 
-    p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-21')
-    p.run(eval_genomes, 10)
+    # p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-21')
+    # p.run(eval_genomes, 10)
 
 
 if __name__ == '__main__':
