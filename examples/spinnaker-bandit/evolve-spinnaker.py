@@ -27,7 +27,7 @@ if exec_thing == 'xor':
     arms = [[0, 0], [0, 1], [1, 0], [1, 1]]
 shared_probabilities = True
 shape_fitness = False
-spike_fitness = False
+spike_fitness = 'out'
 grooming = 'rank'
 reward_based = 0
 spike_cap = 30000
@@ -130,7 +130,7 @@ def save_stats():
     best_fitness = [c.fitness for c in statistics.most_fit_genomes]
     avg_fitness = np.array(statistics.get_fitness_mean())
     stdev_fitness = np.array(statistics.get_fitness_stdev())
-    with open('NEAT bandit stats {}.csv'.format(config), 'w') as file:
+    with open('NEAT stats {}.csv'.format(config), 'w') as file:
         writer = csv.writer(file, delimiter=',', lineterminator='\n')
         writer.writerow(['Iteration: {}'.format(generation)])
         writer.writerow(['Best fitness'])
@@ -163,7 +163,7 @@ def spinn_genomes(genomes, neat_config):
     fitnesses = read_fitnesses(config)
     if spike_fitness:
         agent_spikes = []
-        for k in range(neat_config.pop_size):
+        for k in range(len(genomes)):
             spike_total = 0
             for j in range(len(test_data_set)):
                 if isinstance(fitnesses[j][k], list):
@@ -193,7 +193,7 @@ def spinn_genomes(genomes, neat_config):
 
         # combined_fitnesses = [0 for i in range(len(genomes))]
         for i in range(len(genomes)):
-            for j in range(len(arms)):
+            for j in range(len(test_data_set)):
                 combined_fitnesses[sorted_metrics[j][i][1]] += sorted_metrics[j][i][0]
     else:
         for i in range(len(fitnesses)):
@@ -207,6 +207,7 @@ def spinn_genomes(genomes, neat_config):
             print (" {:6}".format(fitnesses[j][i]), end=" ")
         print (" \t {:6}".format(combined_fitnesses[i]))
     i = 0
+    print(config)
     for genome_id, genome in genomes:
         genome.fitness = combined_fitnesses[i]
         i += 1
