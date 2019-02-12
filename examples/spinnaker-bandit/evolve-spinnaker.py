@@ -36,6 +36,7 @@ noise_rate = 0
 noise_weight = 0.01
 keys = ['fitness']
 fast_membrane = False
+parse_conn = False
 
 # UDP port to read spikes from
 UDP_PORT1 = 17887
@@ -94,6 +95,10 @@ if shape_fitness:
     config += ' shape'
 if noise_rate:
     config += ' noise {}-{}'.format(noise_rate, noise_weight)
+if fast_membrane:
+    config += ' fast_mem'
+if parse_conn:
+    config += ' parse_conn'
 
 
 best_fitness = []

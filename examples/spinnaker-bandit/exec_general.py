@@ -188,12 +188,15 @@ def connect_to_arms(pre_pop, from_list, arms, r_type):
             p.Projection(pre_pop, arms[i], p.FromListConnector(arm_conn_list[i]), p.StaticSynapse(), receptor_type=r_type)
 
 def parse_connections(from_list):
-    new_list = []
-    for conn in from_list:
-        new_conn = deepcopy(conn)
-        # conn[2] = 0.1
-        new_list.append((conn[0], conn[1], 0.1, conn[3]))
-    return new_list
+    if parse_conn:
+        new_list = []
+        for conn in from_list:
+            new_conn = deepcopy(conn)
+            # conn[2] = 0.1
+            new_list.append((conn[0], conn[1], 0.1, conn[3]))
+        return new_list
+    else:
+        return from_list
 
 def test_pop(pop, test_data):#, noise_rate=50, noise_weight=1):
     #test the whole population and return scores
