@@ -35,6 +35,7 @@ spike_weight = 0.1
 noise_rate = 0
 noise_weight = 0.01
 keys = ['fitness']
+fast_membrane = False
 
 # UDP port to read spikes from
 UDP_PORT1 = 17887

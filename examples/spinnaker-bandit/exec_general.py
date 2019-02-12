@@ -279,12 +279,16 @@ def test_pop(pop, test_data):#, noise_rate=50, noise_weight=1):
             # added to ensure that the arms and bandit are connected to and from something
             null_pop = p.Population(1, p.IF_cond_exp(), label='null{}'.format(i))
             p.Projection(input_pops[model_count], null_pop, p.AllToAllConnector())
-            output_pops.append(p.Population(output_size, p.IF_cond_exp(tau_m=0.5, # parameters for a fast membrane
-                                                                  tau_refrac=0,
-                                                                  v_thresh=-64,
-                                                                  tau_syn_E=0.5,
-                                                                  tau_syn_I=0.5),
-                                           label='output_pop_{}-{}'.format(model_count, i)))
+            if fast_membrane:
+                output_pops.append(p.Population(output_size, p.IF_cond_exp(tau_m=0.5, # parameters for a fast membrane
+                                                                      tau_refrac=0,
+                                                                      v_thresh=-64,
+                                                                      tau_syn_E=0.5,
+                                                                      tau_syn_I=0.5),
+                                               label='output_pop_{}-{}'.format(model_count, i)))
+            else:
+                output_pops.append(p.Population(output_size, p.IF_cond_exp(),
+                                               label='output_pop_{}-{}'.format(model_count, i)))
             if spike_fitness == 'out':
                 output_pops[model_count].record('spikes')
             p.Projection(output_pops[model_count], input_pops[model_count], p.AllToAllConnector())
