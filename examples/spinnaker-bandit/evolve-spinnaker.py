@@ -22,7 +22,7 @@ for i in range(arm_len):
 # arms = [[0, 1], [1, 0]]
 # arms = [[0, 1]]
 
-exec_thing = 'arms'
+exec_thing = 'rank pen'
 if exec_thing == 'xor':
     arms = [[0, 0], [0, 1], [1, 0], [1, 1]]
 shared_probabilities = True
@@ -42,7 +42,7 @@ parse_conn = False
 UDP_PORT1 = 17887
 UDP_PORT2 = UDP_PORT1 + 1
 
-number_of_trials = 105
+number_of_trials = 205
 duration_of_trial = 200
 runtime = number_of_trials * duration_of_trial
 try_attempts = 2
@@ -54,13 +54,13 @@ empty_post_count = 0
 
 '''remember to change inputs and outputs in the config as well'''
 
-encoding = 1
+encoding = 0
 time_increment = 20
 pole_length = 1
 pole_angle = [[0.1], [0.2], [-0.1], [-0.2]]
 reward_based = 1
-force_increments = 100
-max_firing_rate = 50
+force_increments = 10
+max_firing_rate = 30
 number_of_bins = 3
 central = 1
 bin_overlap = 2
@@ -78,6 +78,11 @@ if exec_thing == 'pen':
     input_size = number_of_bins * 4
     output_size = 2
     config = 'pend-an{}-{}-F{}-R{}-B{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins)
+    test_data_set = pole_angle
+elif exec_thing == 'rank pen':
+    input_size = number_of_bins * 4
+    output_size = force_increments
+    config = 'pend-an{}-{}-F{}-R{}-B{}-E{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins, encoding)
     test_data_set = pole_angle
 else:
     input_size = 2

@@ -12,6 +12,7 @@ import socket
 import numpy as np
 from spinn_bandit.python_models.bandit import Bandit
 from python_models.pendulum import Pendulum
+from rank_inverted_pendulum.python_models.rank_pendulum import Rank_Pendulum
 from spinn_arm.python_models.arm import Arm
 from spinn_breakout import Breakout
 import math
@@ -242,7 +243,7 @@ def test_pop(pop, test_data):#, noise_rate=50, noise_weight=1):
                 p.setup(timestep=1.0)
                 p.set_number_of_neurons_per_core(p.IF_cond_exp, 100)
         for i in range(len(pop)):
-            number_of_nodes = len(pop[i][1].nodes) + len(test_data)
+            number_of_nodes = len(pop[i][1].nodes)
             hidden_size = number_of_nodes - output_size
 
             [i2i_ex, i2h_ex, i2o_ex, h2i_ex, h2h_ex, h2o_ex, o2i_ex, o2h_ex, o2o_ex, i2i_in, i2h_in, i2o_in, h2i_in, h2h_in, h2o_in, o2i_in, o2h_in, o2o_in] = \
@@ -253,6 +254,21 @@ def test_pop(pop, test_data):#, noise_rate=50, noise_weight=1):
             if exec_thing == 'pen':
                 # one of these variable can be replaced with test_data depending on what needs to be tested
                 input_model = Pendulum(encoding=encoding,
+                                       time_increment=time_increment,
+                                       pole_length=pole_length,
+                                       pole_angle=test_data[0],
+                                       reward_based=reward_based,
+                                       force_increments=force_increments,
+                                       max_firing_rate=max_firing_rate,
+                                       number_of_bins=number_of_bins,
+                                       central=central,
+                                       bin_overlap=bin_overlap,
+                                       tau_force=tau_force,
+                                       rand_seed=[np.random.randint(0xffff) for j in range(4)],
+                                       label='pendulum_pop_{}-{}'.format(model_count, i))
+            elif exec_thing == 'rank pen':
+                # one of these variable can be replaced with test_data depending on what needs to be tested
+                input_model = Rank_Pendulum(encoding=encoding,
                                        time_increment=time_increment,
                                        pole_length=pole_length,
                                        pole_angle=test_data[0],
