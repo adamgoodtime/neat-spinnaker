@@ -38,9 +38,7 @@ keys = ['fitness']
 fast_membrane = False
 parse_conn = False
 
-# UDP port to read spikes from
-UDP_PORT1 = 17887
-UDP_PORT2 = UDP_PORT1 + 1
+'''start saving the best agents and the population'''
 
 number_of_trials = 205
 duration_of_trial = 200
