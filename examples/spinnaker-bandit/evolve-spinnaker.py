@@ -59,7 +59,7 @@ pole_angle = [[0.1], [0.2], [-0.1], [-0.2]]
 reward_based = 1
 force_increments = 10
 max_firing_rate = 30
-number_of_bins = 3
+number_of_bins = 6
 central = 1
 bin_overlap = 2
 tau_force = 0
@@ -75,12 +75,12 @@ threading_tests = True
 if exec_thing == 'pen':
     input_size = number_of_bins * 4
     output_size = 2
-    config = 'pend-an{}-{}-F{}-R{}-B{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins)
+    config = 'pend-an{}-{}-F{}-R{}-B{}-O{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins, bin_overlap)
     test_data_set = pole_angle
 elif exec_thing == 'rank pen':
     input_size = number_of_bins * 4
     output_size = force_increments
-    config = 'pend-an{}-{}-F{}-R{}-B{}-E{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins, encoding)
+    config = 'pend-an{}-{}-F{}-R{}-B{}-O{}-E{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins, bin_overlap, encoding)
     test_data_set = pole_angle
 else:
     input_size = 2
