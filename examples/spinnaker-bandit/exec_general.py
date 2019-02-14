@@ -214,6 +214,7 @@ def test_pop(pop, test_data):#, noise_rate=50, noise_weight=1):
     #Acquire all connection matrices and node types
 
     print(len(pop))
+    print(test_data)
     # tracker.print_diff()
     #create the SpiNN nets
     scores = []

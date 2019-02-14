@@ -11,6 +11,7 @@ import csv
 import numpy as np
 import time
 
+
 arm1 = 1
 arm2 = 0
 # arm3 = 0.1
