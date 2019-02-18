@@ -27,7 +27,7 @@ exec_thing = 'rank pen'
 if exec_thing == 'xor':
     arms = [[0, 0], [0, 1], [1, 0], [1, 1]]
 shared_probabilities = True
-shape_fitness = False
+shape_fitness = True
 spike_fitness = 'out'
 grooming = 'rank'
 reward_based = 0
@@ -115,16 +115,18 @@ worst_score = []
 stats = None
 
 def read_fitnesses(config):
-    fitnesses = []
-    file_name = 'fitnesses {}.csv'.format(config)
-    with open(file_name) as from_file:
-        csvFile = csv.reader(from_file)
-        for row in csvFile:
-            metric = []
-            for thing in row:
-                metric.append(literal_eval(thing))
-            fitnesses.append(metric)
-    return fitnesses
+    # fitnesses = []
+    # file_name = 'fitnesses {}.csv'.format(config)
+    # with open(file_name) as from_file:
+    #     csvFile = csv.reader(from_file)
+    #     for row in csvFile:
+    #         metric = []
+    #         for thing in row:
+    #             metric.append(literal_eval(thing))
+    #         fitnesses.append(metric)
+
+    fitnesses = np.load('fitnesses {}.npy'.format(config))
+    return fitnesses.tolist()
 
 def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
@@ -138,6 +140,8 @@ def save_stats():
     statistics = stats
     generation = len(statistics.most_fit_genomes)
     best_fitness = [c.fitness for c in statistics.most_fit_genomes]
+    if len(best_fitness) > 0:
+        np.save('best_agent {} {}.npy'.format(len(best_fitness)-1, config), c)
     avg_fitness = np.array(statistics.get_fitness_mean())
     stdev_fitness = np.array(statistics.get_fitness_stdev())
     with open('NEAT stats {}.csv'.format(config), 'w') as file:
@@ -169,7 +173,7 @@ def spinn_genomes(genomes, neat_config):
     if exec_thing == 'xor':
         execfile("exec_xor.py", globals())
     else:
-        execfile("exec_general.py", globals())
+        execfile("exec_subprocess.py", globals())
     fitnesses = read_fitnesses(config)
     if spike_fitness:
         agent_spikes = []
@@ -202,20 +206,41 @@ def spinn_genomes(genomes, neat_config):
         # sorted_metrics.append(combined_spikes)
 
         # combined_fitnesses = [0 for i in range(len(genomes))]
-        for i in range(len(genomes)):
-            for j in range(len(test_data_set)):
-                combined_fitnesses[sorted_metrics[j][i][1]] += sorted_metrics[j][i][0]
+        if shape_fitness:
+            for j in range(len(sorted_metrics)):
+                count = 0
+                for i in range(len(genomes)):
+                    if i > 0:
+                        if sorted_metrics[j][i-1][0] != sorted_metrics[j][i][0]:
+                            count = i
+                    combined_fitnesses[sorted_metrics[j][i][1]] += count
+                    if j < len(test_data_set):
+                        combined_scores[sorted_metrics[j][i][1]] += sorted_metrics[j][i][0]
+            best_index = combined_scores.index(max(combined_scores))
+        else:
+            for i in range(len(genomes)):
+                for j in range(len(test_data_set)):
+                    combined_fitnesses[sorted_metrics[j][i][1]] += sorted_metrics[j][i][0]
+            best_index = combined_fitnesses.index(max(combined_fitnesses))
     else:
         for i in range(len(fitnesses)):
             for j in range(len(fitnesses[i])):
                 combined_fitnesses[j] += fitnesses[i][j]
                 # add spikes to fitness here somehow if you want
+        best_index = combined_fitnesses.index(max(combined_fitnesses))
     i = 0
     for i in range(len(fitnesses[i])):
         print ("{:4} | ".format(i), end=" ")
         for j in range(len(fitnesses)):
             print (" {:6}".format(fitnesses[j][i]), end=" ")
         print (" \t {:6}".format(combined_fitnesses[i]))
+    best_total = 0
+    print("\nbest score is ", end=" ")
+    for i in range(len(fitnesses)):
+        print(fitnesses[i][best_index], end=" ")
+        best_total += fitnesses[i][best_index]
+    best_score.append(best_total)
+    print("\n", end=" ")
     i = 0
     print(config)
     for genome_id, genome in genomes:
