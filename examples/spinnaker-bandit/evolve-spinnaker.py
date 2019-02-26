@@ -23,12 +23,12 @@ for i in range(arm_len):
 # arms = [[0, 1], [1, 0]]
 # arms = [[0, 1]]
 
-exec_thing = 'rank pen'
+exec_thing = 'pen'
 if exec_thing == 'xor':
     arms = [[0, 0], [0, 1], [1, 0], [1, 1]]
 shared_probabilities = True
 shape_fitness = True
-spike_fitness = 'out'
+spike_fitness = False # 'out'
 grooming = 'rank'
 reward_based = 0
 spike_cap = 30000
@@ -53,13 +53,13 @@ empty_post_count = 0
 
 '''remember to change inputs and outputs in the config as well'''
 
-encoding = 0
+encoding = 1
 time_increment = 20
 pole_length = 1
 pole_angle = [[0.1], [0.2], [-0.1], [-0.2]]
 reward_based = 1
-force_increments = 10
-max_firing_rate = 30
+force_increments = 20
+max_firing_rate = 1000
 number_of_bins = 6
 central = 1
 bin_overlap = 2
@@ -81,7 +81,7 @@ if exec_thing == 'pen':
 elif exec_thing == 'rank pen':
     input_size = number_of_bins * 4
     output_size = force_increments
-    config = 'pend-an{}-{}-F{}-R{}-B{}-O{}-E{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins, bin_overlap, encoding)
+    config = 'rank pend-an{}-{}-F{}-R{}-B{}-O{}-E{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins, bin_overlap, encoding)
     test_data_set = pole_angle
 else:
     input_size = 2
@@ -198,6 +198,8 @@ def spinn_genomes(genomes, neat_config):
                 if fitnesses[i][j] == 'fail':
                     indexed_metric.append([-10000000, j])
                 else:
+                    if isinstance(fitnesses[i][j], list):
+                        fitnesses[i][j] = fitnesses[i][j][0]
                     indexed_metric.append([fitnesses[i][j], j])
                 # combined_spikes[j][0] -= fitnesses[i][j][1]
             indexed_metric.sort()
