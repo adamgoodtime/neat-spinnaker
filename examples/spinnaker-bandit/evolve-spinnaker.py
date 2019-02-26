@@ -53,6 +53,7 @@ empty_post_count = 0
 
 '''remember to change inputs and outputs in the config as well'''
 
+no_v = False
 encoding = 1
 time_increment = 20
 pole_length = 1
@@ -74,12 +75,17 @@ weight = 0.1
 threading_tests = True
 
 if exec_thing == 'pen':
+    encoding = 1
     input_size = number_of_bins * 4
+    if no_v:
+        input_size /= 2
     output_size = 2
     config = 'pend-an{}-{}-F{}-R{}-B{}-O{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins, bin_overlap)
     test_data_set = pole_angle
 elif exec_thing == 'rank pen':
     input_size = number_of_bins * 4
+    if no_v:
+        input_size /= 2
     output_size = force_increments
     config = 'rank pend-an{}-{}-F{}-R{}-B{}-O{}-E{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins, bin_overlap, encoding)
     test_data_set = pole_angle
@@ -103,6 +109,8 @@ if fast_membrane:
     config += ' fast_mem'
 if parse_conn:
     config += ' parse_conn'
+if no_v:
+    config += 'no_v'
 
 
 best_fitness = []
