@@ -244,7 +244,9 @@ def spinn_genomes(genomes, neat_config):
         print(fitnesses[i][best_index], end=" ")
         best_total += fitnesses[i][best_index]
     best_score.append(best_total)
-    print("\n", end=" ")
+    average_score.append(np.average(combined_fitnesses))
+    worst_score.append(min(combined_fitnesses))
+    print("\n", end=" ")q
     i = 0
     print(config)
     for genome_id, genome in genomes:
