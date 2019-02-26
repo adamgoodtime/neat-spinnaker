@@ -58,7 +58,9 @@ def wait_timeout(processes, seconds):
                 finished += 1
             elif time.time() >= end:
                 process.kill()
-                print ("had to kill a process, it timed out")
+                print ("\nhad to kill a process, it timed out\n")
+                fail = 'fail'
+                np.save('fitnesses {} {}.npy'.format(config, processes.index(process)), fail)
                 finished += 1
         time.sleep(interval)
         if finished == len(processes):
@@ -69,7 +71,7 @@ def read_results(test_length):
     all_fitnesses = []
     for i in range(test_length):
         pop_fitness = np.load('fitnesses {} {}.npy'.format(config, i))
-        all_fitnesses.append(pop_fitness)
+        all_fitnesses.append(pop_fitness.tolist())
         # file_name = 'fitnesses {} {}.csv'.format(config, i)
         # with open(file_name) as from_file:
         #     csvFile = csv.reader(from_file)
@@ -138,16 +140,7 @@ def subprocess_experiments(pop, test_data_set, split=1, exec_thing='pen', top=Tr
 
     agent_fitness = []
     for thread in pool_result:
-        if isinstance(thread, np.ndarray):
-            for result in thread:
-                agent_fitness.append(result)
-        else:
-            agent_fitness.append(thread)
-
-
-    agent_fitness = []
-    for thread in pool_result:
-        if isinstance(thread, np.ndarray):
+        if isinstance(thread, list):
             for result in thread:
                 agent_fitness.append(result)
         else:

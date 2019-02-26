@@ -67,7 +67,7 @@ tau_force = 0
 
 weight_max = 1.0
 weight_scale = 1.0
-delay = 10
+delay = 1
 
 weight = 0.1
 
