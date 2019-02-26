@@ -227,6 +227,8 @@ def spinn_genomes(genomes, neat_config):
     else:
         for i in range(len(fitnesses)):
             for j in range(len(fitnesses[i])):
+                if isinstance(fitnesses[i][j], list):
+                    fitnesses[i][j] = fitnesses[i][j][0]
                 combined_fitnesses[j] += fitnesses[i][j]
                 # add spikes to fitness here somehow if you want
         best_index = combined_fitnesses.index(max(combined_fitnesses))
@@ -238,7 +240,7 @@ def spinn_genomes(genomes, neat_config):
         print (" \t {:6}".format(combined_fitnesses[i]))
     best_total = 0
     print("\nbest score is ", end=" ")
-    for i in range(len(fitnesses)):
+    for i in range(len(test_data_set)):
         print(fitnesses[i][best_index], end=" ")
         best_total += fitnesses[i][best_index]
     best_score.append(best_total)
