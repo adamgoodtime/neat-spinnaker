@@ -112,7 +112,7 @@ if fast_membrane:
 if parse_conn:
     config += ' parse_conn'
 if no_v:
-    config += 'no_v'
+    config += ' no_v'
 
 
 best_fitness = []
