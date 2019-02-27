@@ -74,6 +74,8 @@ weight = 0.1
 
 threading_tests = True
 
+iteration_count = 0
+
 if exec_thing == 'pen':
     encoding = 1
     input_size = number_of_bins * 4
@@ -174,7 +176,7 @@ def save_stats():
         file.close()
 
 def spinn_genomes(genomes, neat_config):
-    global input_size, output_size
+    global input_size, output_size, iteration_count
     input_size = neat_config.genome_config.num_inputs
     save_stats()
     globals()['pop'] = genomes
@@ -251,6 +253,8 @@ def spinn_genomes(genomes, neat_config):
     for i in range(len(test_data_set)):
         print(fitnesses[i][best_index], end=" ")
         best_total += fitnesses[i][best_index]
+    np.save('best agent score {} {}.npy'.format(iteration_count, config), genomes[best_index])
+    iteration_count += 1
     best_score.append(best_total)
     average_score.append(np.average(combined_fitnesses))
     worst_score.append(min(combined_fitnesses))
