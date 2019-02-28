@@ -23,7 +23,7 @@ for i in range(arm_len):
 # arms = [[0, 1], [1, 0]]
 # arms = [[0, 1]]
 
-exec_thing = 'pen'
+exec_thing = 'double pen'
 if exec_thing == 'xor':
     arms = [[0, 0], [0, 1], [1, 0], [1, 1]]
 shared_probabilities = True
@@ -96,7 +96,7 @@ elif exec_thing == 'double pen':
     input_size = number_of_bins * 6
     if no_v:
         input_size /= 2
-    output_size = force_increments
+    output_size = 2
     config = 'double pend-an{}-{}-F{}-R{}-B{}-O{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins, bin_overlap)
     test_data_set = pole_angle
 else:
