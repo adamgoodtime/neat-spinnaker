@@ -132,7 +132,7 @@ worst_score = []
 
 stats = None
 
-def read_fitnesses(config):
+def read_fitnesses(config, max_fail_score=0):
     # fitnesses = []
     # file_name = 'fitnesses {}.csv'.format(config)
     # with open(file_name) as from_file:
@@ -144,7 +144,17 @@ def read_fitnesses(config):
     #         fitnesses.append(metric)
 
     fitnesses = np.load('fitnesses {}.npy'.format(config))
-    return fitnesses.tolist()
+    fitnesses = fitnesses.tolist()
+    processed_fitness = []
+    for fitness in fitnesses:
+        processed_score = []
+        for score in fitness:
+            if score == 'fail':
+                processed_score.append([max_fail_score, -10000000, -10000000])
+            else:
+                processed_score.append(score)
+        processed_fitness.append(processed_score)
+    return processed_fitness
 
 def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
