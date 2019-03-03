@@ -98,7 +98,7 @@ def write_globals(file_id):
         file.close()
 
 
-def subprocess_experiments(pop, test_data_set, split=1, exec_thing='pen', top=True):
+def subprocess_experiments(pop, test_data_set, split=1, top=True):
     step_size = len(pop) / split
     if step_size == 0:
         step_size = 1

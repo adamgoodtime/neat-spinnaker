@@ -23,7 +23,7 @@ for i in range(arm_len):
 # arms = [[0, 1], [1, 0]]
 # arms = [[0, 1]]
 
-exec_thing = 'double pen'
+exec_thing = 'arms'
 if exec_thing == 'xor':
     arms = [[0, 0], [0, 1], [1, 0], [1, 1]]
 shared_probabilities = True
