@@ -126,7 +126,7 @@ def subprocess_experiments(pop, test_data_set, split=1, top=True):
 
         test_id += 1
 
-    wait_timeout(process_list, (runtime / 1000) * 4)
+    wait_timeout(process_list, ((runtime / 1000) * 15) + 60)
 
     pool_result = read_results(test_id)
 
