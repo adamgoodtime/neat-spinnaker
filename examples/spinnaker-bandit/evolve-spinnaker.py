@@ -11,7 +11,28 @@ import csv
 import numpy as np
 import time
 
+exec_thing = 'arms'
+shared_probabilities = True
+shape_fitness = True
+spike_fitness = False # 'out'
+reward_based = 0
+spike_weight = 0.1
+noise_rate = 0
+noise_weight = 0.01
+fast_membrane = False
+parse_conn = False
 
+try_attempts = 2
+all_fails = 0
+working_ends = 0
+not_needed_ends = 0
+# empty_pre_count = 0
+empty_post_count = 0
+
+'''remember to change inputs and outputs in the config as well'''
+
+#arm params
+arms_runtime = 41000
 arm1 = 1
 arm2 = 0
 # arm3 = 0.1
@@ -22,37 +43,10 @@ for i in range(arm_len):
     arms.append([arm2, arm1])
 # arms = [[0, 1], [1, 0]]
 # arms = [[0, 1]]
+# arms = [[0.4, 0.6], [0.6, 0.4], [0.3, 0.7], [0.7, 0.3], [0.2, 0.8], [0.8, 0.2], [0.1, 0.9], [0.9, 0.1], [0, 1], [1, 0]]
 
-exec_thing = 'arms'
-if exec_thing == 'xor':
-    arms = [[0, 0], [0, 1], [1, 0], [1, 1]]
-shared_probabilities = True
-shape_fitness = True
-spike_fitness = False # 'out'
-grooming = 'rank'
-reward_based = 0
-spike_cap = 30000
-spike_weight = 0.1
-noise_rate = 0
-noise_weight = 0.01
-keys = ['fitness']
-fast_membrane = False
-parse_conn = False
-
-'''start saving the best agents and the population'''
-
-number_of_trials = 205
-duration_of_trial = 200
-runtime = number_of_trials * duration_of_trial
-try_attempts = 2
-all_fails = 0
-working_ends = 0
-not_needed_ends = 0
-# empty_pre_count = 0
-empty_post_count = 0
-
-'''remember to change inputs and outputs in the config as well'''
-
+#pendulum params
+pendulum_runtime = 181000
 no_v = False
 encoding = 1
 time_increment = 20
@@ -67,6 +61,22 @@ central = 1
 bin_overlap = 2
 tau_force = 0
 
+#logic params
+logic_runtime = 5000
+stochastic = 1
+truth_table = [0, 1, 1, 0]
+input_sequence = []
+segment = [0 for j in range(int(np.log2(len(truth_table))))]
+input_sequence.append(segment)
+for i in range(1, len(truth_table)):
+    current_value = i
+    segment = [0 for j in range(int(np.log2(len(truth_table))))]
+    while current_value != 0:
+        highest_power = int(np.log2(current_value))
+        segment[highest_power] = 1
+        current_value -= 2**highest_power
+    input_sequence.append(segment)
+
 weight_max = 1.0
 weight_scale = 1.0
 delay = 1
@@ -78,6 +88,7 @@ threading_tests = True
 iteration_count = 0
 
 if exec_thing == 'pen':
+    runtime = pendulum_runtime
     encoding = 1
     input_size = number_of_bins * 4
     if no_v:
@@ -86,6 +97,7 @@ if exec_thing == 'pen':
     config = 'pend-an{}-{}-F{}-R{}-B{}-O{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins, bin_overlap)
     test_data_set = pole_angle
 elif exec_thing == 'rank pen':
+    runtime = pendulum_runtime
     input_size = number_of_bins * 4
     if no_v:
         input_size /= 2
@@ -93,17 +105,31 @@ elif exec_thing == 'rank pen':
     config = 'rank pend-an{}-{}-F{}-R{}-B{}-O{}-E{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins, bin_overlap, encoding)
     test_data_set = pole_angle
 elif exec_thing == 'double pen':
+    runtime = pendulum_runtime
     input_size = number_of_bins * 6
     if no_v:
         input_size /= 2
     output_size = 2
     config = 'double pend-an{}-{}-F{}-R{}-B{}-O{} '.format(pole_angle[0], len(pole_angle), force_increments, max_firing_rate, number_of_bins, bin_overlap)
     test_data_set = pole_angle
-else:
+elif exec_thing == 'logic':
+    runtime = logic_runtime
+    test_data_set = input_sequence
+    inputs = len(input_sequence[0])
+    outputs = 2
+    if stochastic:
+        config = 'logic-stoc-{} '.format(stochastic, truth_table)
+    else:
+        config = 'logic-{} '.format(stochastic, truth_table)
+elif exec_thing == 'arms':
+    runtime = arms_runtime
     input_size = 2
     output_size = len(arms[0])
     config = 'bandit {}-{}'.format(arms[0], len(arms))
     test_data_set = arms
+else:
+    print("Incorrect setup chosen, please try agian")
+    raise Exception
 
 config += ' reward {}'.format(reward_based)
 if spike_fitness:

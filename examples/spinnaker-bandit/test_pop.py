@@ -14,6 +14,7 @@ from spinn_bandit.python_models.bandit import Bandit
 from python_models.pendulum import Pendulum
 from rank_inverted_pendulum.python_models.rank_pendulum import Rank_Pendulum
 from double_inverted_pendulum.python_models.double_pendulum import DoublePendulum
+import spinn_gym as gym
 from spinn_arm.python_models.arm import Arm
 # from spinn_breakout import Breakout
 import math
@@ -290,12 +291,21 @@ def test_pop(pop, test_data, exec_thing, spike_fitness):#, noise_rate=50, noise_
                                        bricking=bricking,
                                        random_seed=[np.random.randint(0xffff) for j in range(4)],
                                        label='breakout_pop_{}-{}'.format(model_count, i))
-            else:
+            elif exec_thing == 'logic':
+                input_model = gym.Logic(truth_table=truth_table,
+                                        input_sequence=test_data,
+                                        stochastic=stochastic,
+                                        rand_seed=[np.random.randint(0xffff) for j in range(4)],
+                                        label='logic_pop_{}-{}'.format(model_count, i))
+            elif exec_thing == 'arms':
                 input_model = Bandit(arms=test_data,
                                      reward_delay=duration_of_trial,
                                      reward_based=reward_based,
                                      rand_seed=[np.random.randint(0xffff) for j in range(4)],
                                      label='bandit_pop_{}-{}'.format(model_count, i))
+            else:
+                print "Incorrect input model selected"
+                raise Exception
             input_pop_size = input_model.neurons()
             input_pops.append(p.Population(input_pop_size, input_model))
             # added to ensure that the arms and bandit are connected to and from something
