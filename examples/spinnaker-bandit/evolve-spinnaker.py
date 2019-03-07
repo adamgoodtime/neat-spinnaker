@@ -11,7 +11,7 @@ import csv
 import numpy as np
 import time
 
-exec_thing = 'arms'
+exec_thing = 'logic'
 shared_probabilities = True
 shape_fitness = True
 spike_fitness = False # 'out'
@@ -33,6 +33,7 @@ empty_post_count = 0
 
 #arm params
 arms_runtime = 41000
+duration_of_trial = 200
 arm1 = 1
 arm2 = 0
 # arm3 = 0.1
@@ -43,7 +44,7 @@ for i in range(arm_len):
     arms.append([arm2, arm1])
 # arms = [[0, 1], [1, 0]]
 # arms = [[0, 1]]
-# arms = [[0.4, 0.6], [0.6, 0.4], [0.3, 0.7], [0.7, 0.3], [0.2, 0.8], [0.8, 0.2], [0.1, 0.9], [0.9, 0.1], [0, 1], [1, 0]]
+arms = [[0.4, 0.6], [0.6, 0.4], [0.3, 0.7], [0.7, 0.3], [0.2, 0.8], [0.8, 0.2], [0.1, 0.9], [0.9, 0.1], [0, 1], [1, 0]]
 
 #pendulum params
 pendulum_runtime = 181000
@@ -64,6 +65,7 @@ tau_force = 0
 #logic params
 logic_runtime = 5000
 stochastic = 1
+score_delay = 5000
 truth_table = [0, 1, 1, 0]
 input_sequence = []
 segment = [0 for j in range(int(np.log2(len(truth_table))))]
@@ -115,12 +117,12 @@ elif exec_thing == 'double pen':
 elif exec_thing == 'logic':
     runtime = logic_runtime
     test_data_set = input_sequence
-    inputs = len(input_sequence[0])
-    outputs = 2
+    input_size = len(input_sequence[0])
+    output_size = 2
     if stochastic:
-        config = 'logic-stoc-{} '.format(stochastic, truth_table)
+        config = 'logic-stoc-{}-run{}-sample{} '.format(truth_table, runtime, score_delay)
     else:
-        config = 'logic-{} '.format(stochastic, truth_table)
+        config = 'logic-{}-run{}-sample{} '.format(truth_table, runtime, score_delay)
 elif exec_thing == 'arms':
     runtime = arms_runtime
     input_size = 2
@@ -300,8 +302,11 @@ def spinn_genomes(genomes, neat_config):
     np.save('best agent score {} {}.npy'.format(iteration_count, config), genomes[best_index])
     iteration_count += 1
     best_score.append(best_total)
+    print("best scores: ", best_score)
     average_score.append(np.average(combined_fitnesses))
+    print("average scores: ", average_score)
     worst_score.append(min(combined_fitnesses))
+    print("worst scores: ", worst_score)
     print("\n", end=" ")
     i = 0
     print(config)
