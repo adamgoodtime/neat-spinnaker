@@ -203,7 +203,6 @@ def save_stats():
     with open('NEAT stats {}.csv'.format(config), 'w') as file:
         writer = csv.writer(file, delimiter=',', lineterminator='\n')
         writer.writerow(['Iteration: {}'.format(generation)])
-        writer.writerow(stdev_fitness)
         writer.writerow(['Best score'])
         writer.writerow(best_score)
         writer.writerow(['Average score'])
@@ -215,6 +214,7 @@ def save_stats():
         writer.writerow(['Average fitness'])
         writer.writerow(avg_fitness)
         writer.writerow(['Standard dev fitness'])
+        writer.writerow(stdev_fitness)
         writer.writerow(['Current time'])
         writer.writerow([time.localtime()])
         writer.writerow(['Config'])
