@@ -69,9 +69,17 @@ def wait_timeout(processes, seconds):
 
 def read_results(test_length):
     all_fitnesses = []
+    not_a_file = []
     for i in range(test_length):
-        pop_fitness = np.load('fitnesses {} {}.npy'.format(config, i))
-        all_fitnesses.append(pop_fitness.tolist())
+        try:
+            pop_fitness = np.load('fitnesses {} {}.npy'.format(config, i))
+            all_fitnesses.append(pop_fitness.tolist())
+            os.remove('fitnesses {} {}.npy'.format(config, i))
+            os.remove('data {} {}.npy'.format(config, i))
+        except:
+            pop_fitness = ['fail']
+            not_a_file.append(i)
+            all_fitnesses.append(pop_fitness)
         # file_name = 'fitnesses {} {}.csv'.format(config, i)
         # with open(file_name) as from_file:
         #     csvFile = csv.reader(from_file)
@@ -84,8 +92,6 @@ def read_results(test_length):
         #             # else:
         #             #     metric.append(literal_eval(thing))
         #         pop_fitnesses.append(metric)
-        os.remove('fitnesses {} {}.npy'.format(config, i))
-        os.remove('data {} {}.npy'.format(config, i))
     return all_fitnesses
 
 
