@@ -10,6 +10,7 @@ from ast import literal_eval
 import csv
 import numpy as np
 import time
+import sys
 
 exec_thing = 'arms'
 shared_probabilities = True
@@ -22,6 +23,18 @@ fast_membrane = False
 parse_conn = False
 plasticity = True
 delay = 25
+
+'''print ("reading from input")
+delay = float(sys.argv[2])
+print ("d", sys.argv[2])
+plasticity = bool(int(sys.argv[3]))
+print ("p", sys.argv[3])
+exec_thing = sys.argv[4]
+print ("e", sys.argv[4])
+print (delay)
+print (plasticity)
+print (exec_thing)
+# '''
 
 threading_tests = True
 
