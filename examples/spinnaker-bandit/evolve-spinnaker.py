@@ -11,8 +11,9 @@ import csv
 import numpy as np
 import time
 import sys
+from copy import deepcopy
 
-exec_thing = 'arms'
+exec_thing = 'logic'
 shared_probabilities = True
 shape_fitness = True
 spike_fitness = False
@@ -21,16 +22,19 @@ noise_rate = 0
 noise_weight = 0.01
 fast_membrane = False
 parse_conn = False
-plasticity = True
+plasticity = False
 delay = 25
+parallel = False
+repeat_best = 5
+previous_best = False
 
 '''print ("reading from input")
 delay = float(sys.argv[2])
 print ("d", sys.argv[2])
 plasticity = bool(int(sys.argv[3]))
 print ("p", sys.argv[3])
-exec_thing = sys.argv[4]
-print ("e", sys.argv[4])
+exec_thing = sys.argv[6]
+print ("e", sys.argv[6])
 print (delay)
 print (plasticity)
 print (exec_thing)
@@ -99,7 +103,7 @@ tau_force = 0
 #logic params
 logic_runtime = 5000
 score_delay = 5000
-logic_stochastic = 1
+logic_stochastic = 0
 logic_rate_on = 20
 logic_rate_off = 5
 truth_table = [0, 1, 1, 0]
@@ -288,6 +292,7 @@ config += 'delay-{}'.format(delay)
 best_fitness = []
 average_fitness = []
 worst_fitness = []
+repeated_fitness = []
 best_score = []
 average_score = []
 worst_score = []
@@ -331,10 +336,12 @@ def eval_genomes(genomes, config):
             genome.fitness -= (output[0] - xo[0]) ** 2
 
 def save_stats():
+    global previous_best
     statistics = stats
     generation = len(statistics.most_fit_genomes)
     best_fitness = [c.fitness for c in statistics.most_fit_genomes]
     if len(best_fitness) > 0:
+        previous_best = c
         np.save('best_agent {} {}.npy'.format(len(best_fitness)-1, config), c)
     avg_fitness = np.array(statistics.get_fitness_mean())
     stdev_fitness = np.array(statistics.get_fitness_stdev())
@@ -343,6 +350,8 @@ def save_stats():
         writer.writerow(['Iteration: {}'.format(generation)])
         writer.writerow(['Best score'])
         writer.writerow(best_score)
+        writer.writerow(['Repeated score'])
+        writer.writerow(repeated_fitness)
         writer.writerow(['Average score'])
         writer.writerow(average_score)
         writer.writerow(['Worst score'])
@@ -363,7 +372,10 @@ def spinn_genomes(genomes, neat_config):
     global input_size, output_size, iteration_count
     input_size = neat_config.genome_config.num_inputs
     save_stats()
-    globals()['pop'] = genomes
+    globals()['pop'] = deepcopy(genomes)
+    if previous_best:
+        for i in range(repeat_best):
+            pop.append((0, previous_best))
     if exec_thing == 'xor':
         execfile("exec_xor.py", globals())
     else:
@@ -371,7 +383,7 @@ def spinn_genomes(genomes, neat_config):
     fitnesses = read_fitnesses(config)
     if spike_fitness:
         agent_spikes = []
-        for k in range(len(genomes)):
+        for k in range(len(pop)):
             spike_total = 0
             for j in range(len(test_data_set)):
                 if isinstance(fitnesses[j][k], list):
@@ -382,6 +394,15 @@ def spinn_genomes(genomes, neat_config):
             agent_spikes.append(spike_total)
         fitnesses.append(agent_spikes)
     sorted_metrics = []
+    temp_scores = [0 for i in range(len(test_data_set))]
+    if previous_best:
+        for i in range(repeat_best):
+            for j in range(len(test_data_set)):
+                temp_scores[j] += fitnesses[j][len(genomes) + i][0]
+        for j in range(len(test_data_set)):
+            fitnesses[j] = fitnesses[j][0:len(genomes)]
+            temp_scores[j] /= repeat_best
+        repeated_fitness.append(np.average(temp_scores))
     combined_fitnesses = [0 for i in range(len(genomes))]
     combined_scores = [0 for i in range(len(genomes))]
     # combined_spikes = [[0, i] for i in range(len(genomes))]
@@ -441,6 +462,7 @@ def spinn_genomes(genomes, neat_config):
     iteration_count += 1
     best_score.append(best_total)
     print("best scores: ", best_score)
+    print("repeated fitness: ", repeated_fitness)
     average_score.append(np.average(combined_scores))
     print("average scores: ", average_score)
     worst_score.append(min(combined_scores))

@@ -202,6 +202,16 @@ def test_pop(pop, test_data, exec_thing, spike_fitness):#, noise_rate=50, noise_
     scores = []
     spike_counts = []
     try_except = 0
+    if isinstance(test_data[0], list):
+        if exec_thing == 'arms':
+            if len(test_data) > 2:
+                test_data_set = test_data
+            else:
+                test_data_set = [test_data]
+        else:
+            test_data_set = test_data
+    else:
+        test_data_set = [test_data]
     while try_except < try_attempts:
         print config
         input_pops = []
@@ -225,232 +235,233 @@ def test_pop(pop, test_data, exec_thing, spike_fitness):#, noise_rate=50, noise_
                 print "set up failed, trying again for the last time"
                 p.setup(timestep=1.0, min_delay=1, max_delay=127)
                 p.set_number_of_neurons_per_core(p.IF_cond_exp, 100)
-        for i in range(len(pop)):
-            number_of_nodes = len(pop[i][1].nodes)
-            hidden_size = number_of_nodes - outputs
+        for test_data in test_data_set:
+            for i in range(len(pop)):
+                number_of_nodes = len(pop[i][1].nodes)
+                hidden_size = number_of_nodes - outputs
 
-            [i2i_ex, i2h_ex, i2o_ex, h2i_ex, h2h_ex, h2o_ex, o2i_ex, o2h_ex, o2o_ex, i2i_in, i2h_in, i2o_in, h2i_in, h2h_in, h2o_in, o2i_in, o2h_in, o2o_in] = \
-                connect_genes_to_fromlist(number_of_nodes, pop[i][1].connections, pop[i][1].nodes)
-            # Create environment population
+                [i2i_ex, i2h_ex, i2o_ex, h2i_ex, h2h_ex, h2o_ex, o2i_ex, o2h_ex, o2o_ex, i2i_in, i2h_in, i2o_in, h2i_in, h2h_in, h2o_in, o2i_in, o2h_in, o2o_in] = \
+                    connect_genes_to_fromlist(number_of_nodes, pop[i][1].connections, pop[i][1].nodes)
+                # Create environment population
 
-            model_count += 1
-            if exec_thing == 'pen':
-                input_model = gym.Pendulum(encoding=encoding,
-                                           time_increment=time_increment,
-                                           pole_length=pole_length,
-                                           pole_angle=test_data[0],
-                                           reward_based=reward_based,
-                                           force_increments=force_increments,
-                                           max_firing_rate=max_firing_rate,
-                                           number_of_bins=number_of_bins,
-                                           central=central,
-                                           bin_overlap=bin_overlap,
-                                           tau_force=tau_force,
-                                           rand_seed=[np.random.randint(0xffff) for j in range(4)],
-                                           label='pendulum_pop_{}-{}'.format(model_count, i))
-            elif exec_thing == 'rank pen':
-                input_model = Rank_Pendulum(encoding=encoding,
-                                            time_increment=time_increment,
-                                            pole_length=pole_length,
-                                            pole_angle=test_data[0],
-                                            reward_based=reward_based,
-                                            force_increments=force_increments,
-                                            max_firing_rate=max_firing_rate,
-                                            number_of_bins=number_of_bins,
-                                            central=central,
-                                            bin_overlap=bin_overlap,
-                                            tau_force=tau_force,
+                model_count += 1
+                if exec_thing == 'pen':
+                    input_model = gym.Pendulum(encoding=encoding,
+                                               time_increment=time_increment,
+                                               pole_length=pole_length,
+                                               pole_angle=test_data[0],
+                                               reward_based=reward_based,
+                                               force_increments=force_increments,
+                                               max_firing_rate=max_firing_rate,
+                                               number_of_bins=number_of_bins,
+                                               central=central,
+                                               bin_overlap=bin_overlap,
+                                               tau_force=tau_force,
+                                               rand_seed=[np.random.randint(0xffff) for j in range(4)],
+                                               label='pendulum_pop_{}-{}'.format(model_count, i))
+                elif exec_thing == 'rank pen':
+                    input_model = Rank_Pendulum(encoding=encoding,
+                                                time_increment=time_increment,
+                                                pole_length=pole_length,
+                                                pole_angle=test_data[0],
+                                                reward_based=reward_based,
+                                                force_increments=force_increments,
+                                                max_firing_rate=max_firing_rate,
+                                                number_of_bins=number_of_bins,
+                                                central=central,
+                                                bin_overlap=bin_overlap,
+                                                tau_force=tau_force,
+                                                rand_seed=[np.random.randint(0xffff) for j in range(4)],
+                                                label='rank_pendulum_pop_{}-{}'.format(model_count, i))
+                elif exec_thing == 'double pen':
+                    input_model = gym.DoublePendulum(encoding=encoding,
+                                                     time_increment=time_increment,
+                                                     pole_length=pole_length,
+                                                     pole_angle=test_data[0],
+                                                     pole2_length=pole2_length,
+                                                     pole2_angle=pole2_angle,
+                                                     reward_based=reward_based,
+                                                     force_increments=force_increments,
+                                                     max_firing_rate=max_firing_rate,
+                                                     number_of_bins=number_of_bins,
+                                                     central=central,
+                                                     bin_overlap=bin_overlap,
+                                                     tau_force=tau_force,
+                                                     rand_seed=[np.random.randint(0xffff) for j in range(4)],
+                                                     label='double_pendulum_pop_{}-{}'.format(model_count, i))
+                elif exec_thing == 'bout':
+                    input_model = gym.Breakout(x_factor=x_factor,
+                                               y_factor=y_factor,
+                                               bricking=bricking,
+                                               random_seed=[np.random.randint(0xffff) for j in range(4)],
+                                               label='breakout_pop_{}-{}'.format(model_count, i))
+                elif exec_thing == 'logic':
+                    input_model = gym.Logic(truth_table=truth_table,
+                                            input_sequence=test_data,
+                                            stochastic=stochastic,
+                                            score_delay=score_delay,
+                                            rate_on=rate_on,
+                                            rate_off=rate_off,
                                             rand_seed=[np.random.randint(0xffff) for j in range(4)],
-                                            label='rank_pendulum_pop_{}-{}'.format(model_count, i))
-            elif exec_thing == 'double pen':
-                input_model = gym.DoublePendulum(encoding=encoding,
-                                                 time_increment=time_increment,
-                                                 pole_length=pole_length,
-                                                 pole_angle=test_data[0],
-                                                 pole2_length=pole2_length,
-                                                 pole2_angle=pole2_angle,
-                                                 reward_based=reward_based,
-                                                 force_increments=force_increments,
-                                                 max_firing_rate=max_firing_rate,
-                                                 number_of_bins=number_of_bins,
-                                                 central=central,
-                                                 bin_overlap=bin_overlap,
-                                                 tau_force=tau_force,
-                                                 rand_seed=[np.random.randint(0xffff) for j in range(4)],
-                                                 label='double_pendulum_pop_{}-{}'.format(model_count, i))
-            elif exec_thing == 'bout':
-                input_model = gym.Breakout(x_factor=x_factor,
-                                           y_factor=y_factor,
-                                           bricking=bricking,
-                                           random_seed=[np.random.randint(0xffff) for j in range(4)],
-                                           label='breakout_pop_{}-{}'.format(model_count, i))
-            elif exec_thing == 'logic':
-                input_model = gym.Logic(truth_table=truth_table,
-                                        input_sequence=test_data,
-                                        stochastic=stochastic,
-                                        score_delay=score_delay,
-                                        rate_on=rate_on,
-                                        rate_off=rate_off,
-                                        rand_seed=[np.random.randint(0xffff) for j in range(4)],
-                                        label='logic_pop_{}-{}'.format(model_count, i))
-            elif exec_thing == 'arms':
-                input_model = gym.Bandit(arms=test_data,
-                                         reward_delay=duration_of_trial,
-                                         reward_based=arms_reward,
-                                         stochastic=stochastic,
-                                         constant_input=constant_input,
-                                         rate_on=rate_on,
-                                         rate_off=rate_off,
-                                         rand_seed=[np.random.randint(0xffff) for j in range(4)],
-                                         label='bandit_pop_{}-{}'.format(model_count, i))
-            elif exec_thing == 'recall':
-                input_model = gym.Recall(rate_on=rate_on,
-                                         rate_off=rate_off,
-                                         pop_size=recall_pop_size,
-                                         prob_command=prob_command,
-                                         prob_in_change=prob_in_change,
-                                         time_period=time_period,
-                                         stochastic=stochastic,
-                                         reward=recall_reward,
-                                         rand_seed=[np.random.randint(0xffff) for j in range(4)],
-                                         label='recall_pop_{}-{}'.format(model_count, i))
-            elif exec_thing == 'mnist':
-                # shared population already created
-                None
-            else:
-                print "Incorrect input model selected"
-                raise Exception
-            input_pop_size = input_model.neurons()
-            input_pops.append(p.Population(input_pop_size, input_model))
-            # added to ensure that the arms and bandit are connected to and from something
-            null_pop = p.Population(1, p.IF_cond_exp(), label='null{}'.format(i))
-            p.Projection(input_pops[model_count], null_pop, p.AllToAllConnector())
-            if fast_membrane:
-                output_pops.append(p.Population(outputs, p.IF_cond_exp(tau_m=0.5, # parameters for a fast membrane
-                                                                      tau_refrac=0,
-                                                                      v_thresh=-64,
-                                                                      tau_syn_E=0.5,
-                                                                      tau_syn_I=0.5),
-                                               label='output_pop_{}-{}'.format(model_count, i)))
-            else:
-                output_pops.append(p.Population(outputs, p.IF_cond_exp(),
-                                               label='output_pop_{}-{}'.format(model_count, i)))
-            if spike_fitness == 'out':
-                output_pops[model_count].record('spikes')
-            p.Projection(output_pops[model_count], input_pops[model_count], p.AllToAllConnector())
-            if noise_rate != 0:
-                output_noise = p.Population(outputs, p.SpikeSourcePoisson(rate=noise_rate), label="output noise")
-                p.Projection(output_noise, output_pops[i], p.OneToOneConnector(),
-                             p.StaticSynapse(weight=noise_weight), receptor_type='excitatory')
-
-            if hidden_size != 0:
-                hidden_node_pops.append(p.Population(hidden_size, p.IF_cond_exp(), label="hidden_pop {}".format(i)))
-                hidden_count += 1
-                hidden_marker.append(i)
+                                            label='logic_pop_{}-{}'.format(model_count, i))
+                elif exec_thing == 'arms':
+                    input_model = gym.Bandit(arms=test_data,
+                                             reward_delay=duration_of_trial,
+                                             reward_based=arms_reward,
+                                             stochastic=stochastic,
+                                             constant_input=constant_input,
+                                             rate_on=rate_on,
+                                             rate_off=rate_off,
+                                             rand_seed=[np.random.randint(0xffff) for j in range(4)],
+                                             label='bandit_pop_{}-{}'.format(model_count, i))
+                elif exec_thing == 'recall':
+                    input_model = gym.Recall(rate_on=rate_on,
+                                             rate_off=rate_off,
+                                             pop_size=recall_pop_size,
+                                             prob_command=prob_command,
+                                             prob_in_change=prob_in_change,
+                                             time_period=time_period,
+                                             stochastic=stochastic,
+                                             reward=recall_reward,
+                                             rand_seed=[np.random.randint(0xffff) for j in range(4)],
+                                             label='recall_pop_{}-{}'.format(model_count, i))
+                elif exec_thing == 'mnist':
+                    # shared population already created
+                    None
+                else:
+                    print "Incorrect input model selected"
+                    raise Exception
+                input_pop_size = input_model.neurons()
+                input_pops.append(p.Population(input_pop_size, input_model))
+                # added to ensure that the arms and bandit are connected to and from something
+                null_pop = p.Population(1, p.IF_cond_exp(), label='null{}'.format(i))
+                p.Projection(input_pops[model_count], null_pop, p.AllToAllConnector())
+                if fast_membrane:
+                    output_pops.append(p.Population(outputs, p.IF_cond_exp(tau_m=0.5, # parameters for a fast membrane
+                                                                          tau_refrac=0,
+                                                                          v_thresh=-64,
+                                                                          tau_syn_E=0.5,
+                                                                          tau_syn_I=0.5),
+                                                   label='output_pop_{}-{}'.format(model_count, i)))
+                else:
+                    output_pops.append(p.Population(outputs, p.IF_cond_exp(),
+                                                   label='output_pop_{}-{}'.format(model_count, i)))
+                if spike_fitness == 'out':
+                    output_pops[model_count].record('spikes')
+                p.Projection(output_pops[model_count], input_pops[model_count], p.AllToAllConnector())
                 if noise_rate != 0:
-                    hidden_noise = p.Population(hidden_size, p.SpikeSourcePoisson(rate=noise_rate), label="hidden noise")
-                    p.Projection(hidden_noise, hidden_node_pops[hidden_count], p.OneToOneConnector(),
+                    output_noise = p.Population(outputs, p.SpikeSourcePoisson(rate=noise_rate), label="output noise")
+                    p.Projection(output_noise, output_pops[model_count], p.OneToOneConnector(),
                                  p.StaticSynapse(weight=noise_weight), receptor_type='excitatory')
-                if spike_fitness:
-                    hidden_node_pops[hidden_count].record('spikes')
-            # output_pops[i].record('spikes')
 
-            # Create the remaining nodes from the connection matrix and add them up
-            # if len(i2i_ex) != 0:
-            #     connection = p.FromListConnector(i2i_ex)
-            #     p.Projection(input_pops[model_count], input_pops[model_count], connection,
-            #                  receptor_type='excitatory')
+                if hidden_size != 0:
+                    hidden_node_pops.append(p.Population(hidden_size, p.IF_cond_exp(), label="hidden_pop {}".format(i)))
+                    hidden_count += 1
+                    hidden_marker.append(i)
+                    if noise_rate != 0:
+                        hidden_noise = p.Population(hidden_size, p.SpikeSourcePoisson(rate=noise_rate), label="hidden noise")
+                        p.Projection(hidden_noise, hidden_node_pops[hidden_count], p.OneToOneConnector(),
+                                     p.StaticSynapse(weight=noise_weight), receptor_type='excitatory')
+                    if spike_fitness:
+                        hidden_node_pops[hidden_count].record('spikes')
+                # output_pops[model_count].record('spikes')
 
-            if plasticity:
-                synapse_model = p.STDPMechanism(
-                    timing_dependence=p.SpikePairRule(
-                        tau_plus=20., tau_minus=20.0, A_plus=0.02, A_minus=0.02),
-                    weight_dependence=p.AdditiveWeightDependence(w_min=0, w_max=0.1))
-            else:
-                synapse_model = None
+                # Create the remaining nodes from the connection matrix and add them up
+                # if len(i2i_ex) != 0:
+                #     connection = p.FromListConnector(i2i_ex)
+                #     p.Projection(input_pops[model_count], input_pops[model_count], connection,
+                #                  receptor_type='excitatory')
 
-            if len(i2h_ex) != 0:
-                connection = p.FromListConnector(i2h_ex)
-                p.Projection(input_pops[model_count], hidden_node_pops[hidden_count], connection,
-                             receptor_type='excitatory',
-                             synapse_type=synapse_model)
-            if len(i2o_ex) != 0:
-                # connect_to_arms(input_pops[model_count], i2o_ex, bandit_arms[i], 'excitatory')
-                i2o_ex = parse_connections(i2o_ex)
-                connection = p.FromListConnector(i2o_ex)
-                p.Projection(input_pops[model_count], output_pops[i], connection,
-                             receptor_type='excitatory',
-                             synapse_type=synapse_model)
-            # if len(h2i_ex) != 0:
-            #     p.Projection(hidden_node_pops[hidden_count], input_pops[model_count], p.FromListConnector(h2i_ex),
-            #                  receptor_type='excitatory')
-            if len(h2h_ex) != 0:
-                p.Projection(hidden_node_pops[hidden_count], hidden_node_pops[hidden_count], p.FromListConnector(h2h_ex),
-                             receptor_type='excitatory',
-                             synapse_type=synapse_model)
-            if len(h2o_ex) != 0:
-                h2o_ex = parse_connections(h2o_ex)
-                # connect_to_arms(hidden_node_pops[hidden_count], h2o_ex, bandit_arms[i], 'excitatory')
-                p.Projection(hidden_node_pops[hidden_count], output_pops[i], p.FromListConnector(h2o_ex),
-                             receptor_type='excitatory',
-                             synapse_type=synapse_model)
-            # if len(o2i_ex) != 0:
-            #     p.Projection(output_pops[i], input_pops[model_count], p.FromListConnector(o2i_ex),
-            #                  receptor_type='excitatory')
-            if len(o2h_ex) != 0:
-                p.Projection(output_pops[i], hidden_node_pops[hidden_count], p.FromListConnector(o2h_ex),
-                             receptor_type='excitatory',
-                             synapse_type=synapse_model)
-            if len(o2o_ex) != 0:
-                o2o_ex = parse_connections(o2o_ex)
-                p.Projection(output_pops[i], output_pops[i], p.FromListConnector(o2o_ex),
-                             receptor_type='excitatory',
-                             synapse_type=synapse_model)
-            # if len(i2i_in) != 0:
-            #     p.Projection(input_pops[model_count], input_pops[model_count], p.FromListConnector(i2i_in),
-            #                  receptor_type='inhibitory')
-            if len(i2h_in) != 0:
-                p.Projection(input_pops[model_count], hidden_node_pops[hidden_count], p.FromListConnector(i2h_in),
-                             receptor_type='inhibitory',
-                             synapse_type=synapse_model)
-            if len(i2o_in) != 0:
-                i2o_in = parse_connections(i2o_in)
-                # connect_to_arms(input_pops[model_count], i2o_in, bandit_arms[i], 'inhibitory')
-                p.Projection(input_pops[model_count], output_pops[i], p.FromListConnector(i2o_in),
-                             receptor_type='inhibitory',
-                             synapse_type=synapse_model)
-            # if len(h2i_in) != 0:
-            #     p.Projection(hidden_node_pops[hidden_count], input_pops[model_count], p.FromListConnector(h2i_in),
-            #                  receptor_type='inhibitory')
-            if len(h2h_in) != 0:
-                p.Projection(hidden_node_pops[hidden_count], hidden_node_pops[hidden_count], p.FromListConnector(h2h_in),
-                             receptor_type='inhibitory',
-                             synapse_type=synapse_model)
-            if len(h2o_in) != 0:
-                h2o_in = parse_connections(h2o_in)
-                # connect_to_arms(hidden_node_pops[hidden_count], h2o_in, bandit_arms[i], 'inhibitory')
-                p.Projection(hidden_node_pops[hidden_count], output_pops[i], p.FromListConnector(h2o_in),
-                             receptor_type='inhibitory',
-                             synapse_type=synapse_model)
-            # if len(o2i_in) != 0:
-            #     p.Projection(output_pops[i], input_pops[model_count], p.FromListConnector(o2i_in),
-            #                  receptor_type='inhibitory')
-            if len(o2h_in) != 0:
-                p.Projection(output_pops[i], hidden_node_pops[hidden_count], p.FromListConnector(o2h_in),
-                             receptor_type='inhibitory',
-                             synapse_type=synapse_model)
-            if len(o2o_in) != 0:
-                o2o_in = parse_connections(o2o_in)
-                p.Projection(output_pops[i], output_pops[i], p.FromListConnector(o2o_in),
-                             receptor_type='inhibitory',
-                             synapse_type=synapse_model)
-            # if len(i2i_in) == 0 and len(i2i_ex) == 0 and \
-            if len(i2h_in) == 0 and len(i2h_ex) == 0and \
-                    len(i2o_in) == 0 and len(i2o_ex) == 0:
-                print "empty out from bandit, adding empty pop to complete link"
-                empty_post = p.Population(1, p.IF_cond_exp(), label="empty_post {}".format(i))
-                p.Projection(input_pops[model_count], empty_post, p.AllToAllConnector())
-                empty_post_count += 1
+                if plasticity:
+                    synapse_model = p.STDPMechanism(
+                        timing_dependence=p.SpikePairRule(
+                            tau_plus=20., tau_minus=20.0, A_plus=0.02, A_minus=0.02),
+                        weight_dependence=p.AdditiveWeightDependence(w_min=0, w_max=0.1))
+                else:
+                    synapse_model = None
+
+                if len(i2h_ex) != 0:
+                    connection = p.FromListConnector(i2h_ex)
+                    p.Projection(input_pops[model_count], hidden_node_pops[hidden_count], connection,
+                                 receptor_type='excitatory',
+                                 synapse_type=synapse_model)
+                if len(i2o_ex) != 0:
+                    # connect_to_arms(input_pops[model_count], i2o_ex, bandit_arms[i], 'excitatory')
+                    i2o_ex = parse_connections(i2o_ex)
+                    connection = p.FromListConnector(i2o_ex)
+                    p.Projection(input_pops[model_count], output_pops[model_count], connection,
+                                 receptor_type='excitatory',
+                                 synapse_type=synapse_model)
+                # if len(h2i_ex) != 0:
+                #     p.Projection(hidden_node_pops[hidden_count], input_pops[model_count], p.FromListConnector(h2i_ex),
+                #                  receptor_type='excitatory')
+                if len(h2h_ex) != 0:
+                    p.Projection(hidden_node_pops[hidden_count], hidden_node_pops[hidden_count], p.FromListConnector(h2h_ex),
+                                 receptor_type='excitatory',
+                                 synapse_type=synapse_model)
+                if len(h2o_ex) != 0:
+                    h2o_ex = parse_connections(h2o_ex)
+                    # connect_to_arms(hidden_node_pops[hidden_count], h2o_ex, bandit_arms[i], 'excitatory')
+                    p.Projection(hidden_node_pops[hidden_count], output_pops[model_count], p.FromListConnector(h2o_ex),
+                                 receptor_type='excitatory',
+                                 synapse_type=synapse_model)
+                # if len(o2i_ex) != 0:
+                #     p.Projection(output_pops[model_count], input_pops[model_count], p.FromListConnector(o2i_ex),
+                #                  receptor_type='excitatory')
+                if len(o2h_ex) != 0:
+                    p.Projection(output_pops[model_count], hidden_node_pops[hidden_count], p.FromListConnector(o2h_ex),
+                                 receptor_type='excitatory',
+                                 synapse_type=synapse_model)
+                if len(o2o_ex) != 0:
+                    o2o_ex = parse_connections(o2o_ex)
+                    p.Projection(output_pops[model_count], output_pops[model_count], p.FromListConnector(o2o_ex),
+                                 receptor_type='excitatory',
+                                 synapse_type=synapse_model)
+                # if len(i2i_in) != 0:
+                #     p.Projection(input_pops[model_count], input_pops[model_count], p.FromListConnector(i2i_in),
+                #                  receptor_type='inhibitory')
+                if len(i2h_in) != 0:
+                    p.Projection(input_pops[model_count], hidden_node_pops[hidden_count], p.FromListConnector(i2h_in),
+                                 receptor_type='inhibitory',
+                                 synapse_type=synapse_model)
+                if len(i2o_in) != 0:
+                    i2o_in = parse_connections(i2o_in)
+                    # connect_to_arms(input_pops[model_count], i2o_in, bandit_arms[i], 'inhibitory')
+                    p.Projection(input_pops[model_count], output_pops[model_count], p.FromListConnector(i2o_in),
+                                 receptor_type='inhibitory',
+                                 synapse_type=synapse_model)
+                # if len(h2i_in) != 0:
+                #     p.Projection(hidden_node_pops[hidden_count], input_pops[model_count], p.FromListConnector(h2i_in),
+                #                  receptor_type='inhibitory')
+                if len(h2h_in) != 0:
+                    p.Projection(hidden_node_pops[hidden_count], hidden_node_pops[hidden_count], p.FromListConnector(h2h_in),
+                                 receptor_type='inhibitory',
+                                 synapse_type=synapse_model)
+                if len(h2o_in) != 0:
+                    h2o_in = parse_connections(h2o_in)
+                    # connect_to_arms(hidden_node_pops[hidden_count], h2o_in, bandit_arms[i], 'inhibitory')
+                    p.Projection(hidden_node_pops[hidden_count], output_pops[model_count], p.FromListConnector(h2o_in),
+                                 receptor_type='inhibitory',
+                                 synapse_type=synapse_model)
+                # if len(o2i_in) != 0:
+                #     p.Projection(output_pops[model_count], input_pops[model_count], p.FromListConnector(o2i_in),
+                #                  receptor_type='inhibitory')
+                if len(o2h_in) != 0:
+                    p.Projection(output_pops[model_count], hidden_node_pops[hidden_count], p.FromListConnector(o2h_in),
+                                 receptor_type='inhibitory',
+                                 synapse_type=synapse_model)
+                if len(o2o_in) != 0:
+                    o2o_in = parse_connections(o2o_in)
+                    p.Projection(output_pops[model_count], output_pops[model_count], p.FromListConnector(o2o_in),
+                                 receptor_type='inhibitory',
+                                 synapse_type=synapse_model)
+                # if len(i2i_in) == 0 and len(i2i_ex) == 0 and \
+                if len(i2h_in) == 0 and len(i2h_ex) == 0and \
+                        len(i2o_in) == 0 and len(i2o_ex) == 0:
+                    print "empty out from bandit, adding empty pop to complete link"
+                    empty_post = p.Population(1, p.IF_cond_exp(), label="empty_post {}".format(i))
+                    p.Projection(input_pops[model_count], empty_post, p.AllToAllConnector())
+                    empty_post_count += 1
 
         print "reached here 1"
         # tracker.print_diff()
@@ -479,10 +490,10 @@ def test_pop(pop, test_data, exec_thing, spike_fitness):#, noise_rate=50, noise_
 
 
     hidden_count = 0
-    out_spike_count = [0 for i in range(len(pop))]
-    hid_spike_count = [0 for i in range(len(pop))]
+    out_spike_count = [0 for i in range(len(output_pops))]
+    hid_spike_count = [0 for i in range(len(output_pops))]
     if spike_fitness:
-        for i in range(len(pop)):
+        for i in range(len(output_pops)):
             print "gathering spikes for ", i
             if spike_fitness == 'out':
                 spikes = output_pops[i].get_data('spikes').segments[0].spiketrains
@@ -500,10 +511,10 @@ def test_pop(pop, test_data, exec_thing, spike_fitness):#, noise_rate=50, noise_
 
     print "reached here 2"
     scores = []
-    for i in range(len(pop)):
+    for i in range(len(output_pops)):
         scores.append(get_scores(game_pop=input_pops[i], simulator=simulator))
     pop_fitnesses = []
-    for i in range(len(pop)):
+    for i in range(len(output_pops)):
         if spike_fitness:
             pop_fitnesses.append([scores[i][len(scores[i])-1][0], hid_spike_count[i] + out_spike_count[i]])
         else:

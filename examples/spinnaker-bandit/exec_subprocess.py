@@ -110,10 +110,16 @@ def subprocess_experiments(pop, test_data_set, split=1, top=True):
         step_size = 1
     if isinstance(test_data_set[0], list):
         pop_threads = []
-        all_configs = [[[pop[x:x + step_size], test_data, exec_thing, spike_fitness] for x in xrange(0, len(pop), step_size)] for test_data in test_data_set]
-        for arm in all_configs:
-            for setup in arm:
-                pop_threads.append(setup)
+        if parallel:
+            all_configs = [[[pop[x:x + step_size], test_data, exec_thing, spike_fitness] for x in xrange(0, len(pop), step_size)] for test_data in test_data_set]
+            for arm in all_configs:
+                for setup in arm:
+                    pop_threads.append(setup)
+        else:
+            all_configs = [[[pop[x:x + step_size], test_data_set, exec_thing, spike_fitness] for x in xrange(0, len(pop), step_size)]]
+            for test in all_configs:
+                for set_up in test:
+                    pop_threads.append(set_up)
     else:
         pop_threads = [[pop[x:x + step_size], test_data_set, exec_thing, spike_fitness] for x in xrange(0, len(pop), step_size)]
 
@@ -132,7 +138,7 @@ def subprocess_experiments(pop, test_data_set, split=1, top=True):
 
         test_id += 1
 
-    wait_timeout(process_list, ((runtime / 1000) * 15) + 60)
+    wait_timeout(process_list, ((runtime / 1000) * 15) + 1200)
 
     pool_result = read_results(test_id)
 
