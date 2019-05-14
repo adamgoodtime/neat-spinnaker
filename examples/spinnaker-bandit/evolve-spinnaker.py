@@ -398,11 +398,11 @@ def spinn_genomes(genomes, neat_config):
     if previous_best:
         for i in range(repeat_best):
             for j in range(len(test_data_set)):
-                temp_scores[j] += fitnesses[j][len(genomes) + i][0]
+                temp_scores[j] += float(fitnesses[j][len(genomes) + i][0])
         for j in range(len(test_data_set)):
             fitnesses[j] = fitnesses[j][0:len(genomes)]
-            temp_scores[j] /= repeat_best
-        repeated_fitness.append(np.average(temp_scores))
+            temp_scores[j] /= float(repeat_best)
+        repeated_fitness.append(np.sum(temp_scores))
     combined_fitnesses = [0 for i in range(len(genomes))]
     combined_scores = [0 for i in range(len(genomes))]
     # combined_spikes = [[0, i] for i in range(len(genomes))]
