@@ -241,16 +241,16 @@ def test_pop(pop, test_data, exec_thing, spike_fitness):#, noise_rate=50, noise_
         output_pops = []
         # Setup pyNN simulation
         try:
-            p.setup(timestep=1.0, min_delay=1, max_delay=127)
+            p.setup(timestep=1.0, min_delay=1, max_delay=127, n_chips_required=number_of_chips)
             p.set_number_of_neurons_per_core(p.IF_cond_exp, 100)
         except:
             print "set up failed, trying again"
             try:
-                p.setup(timestep=1.0, min_delay=1, max_delay=127)
+                p.setup(timestep=1.0, min_delay=1, max_delay=127, n_chips_required=number_of_chips)
                 p.set_number_of_neurons_per_core(p.IF_cond_exp, 100)
             except:
                 print "set up failed, trying again for the last time"
-                p.setup(timestep=1.0, min_delay=1, max_delay=127)
+                p.setup(timestep=1.0, min_delay=1, max_delay=127, n_chips_required=number_of_chips)
                 p.set_number_of_neurons_per_core(p.IF_cond_exp, 100)
         machine = p.get_machine()
         chip_list = return_chip_list(machine)
