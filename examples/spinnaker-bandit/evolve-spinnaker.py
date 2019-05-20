@@ -28,7 +28,8 @@ parallel = False
 repeat_best = 5
 previous_best = False
 
-'''print ("reading from input")
+print ("reading from input")
+label = sys.arv[1]
 delay = float(sys.argv[2])
 print ("d", sys.argv[2])
 plasticity = bool(int(sys.argv[3]))
@@ -286,6 +287,7 @@ if fast_membrane:
     config += 'fast_mem '
 if parse_conn:
     config += 'parse_conn '
+config += 'ish-{}'.format(label)
 config += 'delay-{}'.format(delay)
 
 
