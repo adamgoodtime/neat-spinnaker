@@ -183,9 +183,22 @@ def parse_connections(from_list):
 
 def return_chip_list(machine):
     full_chip_list = []
+    chip_list = []
+    for i in range(8):
+        for j in range(8):
+            chip_list.append([i, j])
+    to_be_removed = []
+    for chip in chip_list:
+        if chip[0] > 4 and chip[1] < 3 and chip[0] - 4 > chip[1]:
+            to_be_removed.append(chip)
+        elif chip[0] < 4 and chip[1] > 3 and chip[0] + 3 < chip[1]:
+            to_be_removed.append(chip)
+
+    for removal in to_be_removed:
+        del chip_list[chip_list.index(removal)]
     for i, ethernet in enumerate(machine.ethernet_connected_chips):
         print "i:", i, "- chip:", ethernet.x, "/", ethernet.y
-        for chip in machine.BOARD_48_CHIPS:
+        for chip in chip_list:
             x = chip[0] + ethernet.x
             y = chip[1] + ethernet.y
             if machine.is_chip_at(x, y):
