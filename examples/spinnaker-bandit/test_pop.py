@@ -181,6 +181,22 @@ def parse_connections(from_list):
     else:
         return from_list
 
+def return_chip_list(machine):
+    full_chip_list = []
+    for i, ethernet in enumerate(machine.ethernet_connected_chips):
+        print "i:", i, "- chip:", ethernet.x, "/", ethernet.y
+        for chip in machine.BOARD_48_CHIPS:
+            x = chip[0] + ethernet.x
+            y = chip[1] + ethernet.y
+            if machine.is_chip_at(x, y):
+                if [ethernet.x, ethernet.y] != [0, 12] and [ethernet.x, ethernet.y] != [0, 36]:
+                    full_chip_list.append([x, y])
+                else:
+                    print "removing bad board covering", x, "/", y
+            else:
+                print "chip", x, "/", y, "does not exist"
+    return full_chip_list
+
 def test_pop(pop, test_data, exec_thing, spike_fitness):#, noise_rate=50, noise_weight=1):
     #test the whole population and return scores
     global all_fails
@@ -212,6 +228,7 @@ def test_pop(pop, test_data, exec_thing, spike_fitness):#, noise_rate=50, noise_
             test_data_set = test_data
     else:
         test_data_set = [test_data]
+    number_of_chips = round(len(test_data_set) * len(pop) * 1.1)
     while try_except < try_attempts:
         print config
         input_pops = []
@@ -235,6 +252,8 @@ def test_pop(pop, test_data, exec_thing, spike_fitness):#, noise_rate=50, noise_
                 print "set up failed, trying again for the last time"
                 p.setup(timestep=1.0, min_delay=1, max_delay=127)
                 p.set_number_of_neurons_per_core(p.IF_cond_exp, 100)
+        machine = p.get_machine()
+        chip_list = return_chip_list(machine)
         for test_data in test_data_set:
             for i in range(len(pop)):
                 number_of_nodes = len(pop[i][1].nodes)
@@ -242,8 +261,15 @@ def test_pop(pop, test_data, exec_thing, spike_fitness):#, noise_rate=50, noise_
 
                 [i2i_ex, i2h_ex, i2o_ex, h2i_ex, h2h_ex, h2o_ex, o2i_ex, o2h_ex, o2o_ex, i2i_in, i2h_in, i2o_in, h2i_in, h2h_in, h2o_in, o2i_in, o2h_in, o2o_in] = \
                     connect_genes_to_fromlist(number_of_nodes, pop[i][1].connections, pop[i][1].nodes)
+                chip_x = chip_list[0][0]
+                chip_y = chip_list[0][1]
+                del chip_list[0]
+                while not machine.is_chip_at(chip_x, chip_y):
+                    print " 2nd chip", chip_x, "/", chip_y, "does not exist"
+                    chip_x = chip_list[0][0]
+                    chip_y = chip_list[0][1]
+                    del chip_list[0]
                 # Create environment population
-
                 model_count += 1
                 if exec_thing == 'pen':
                     input_model = gym.Pendulum(encoding=encoding,
@@ -333,8 +359,10 @@ def test_pop(pop, test_data, exec_thing, spike_fitness):#, noise_rate=50, noise_
                     raise Exception
                 input_pop_size = input_model.neurons()
                 input_pops.append(p.Population(input_pop_size, input_model))
+                input_pops[model_count].add_placement_constraint(x=chip_x, y=chip_y)
                 # added to ensure that the arms and bandit are connected to and from something
                 null_pop = p.Population(1, p.IF_cond_exp(), label='null{}'.format(i))
+                null_pop.add_placement_constraint(x=chip_x, y=chip_y)
                 p.Projection(input_pops[model_count], null_pop, p.AllToAllConnector())
                 if fast_membrane:
                     output_pops.append(p.Population(outputs, p.IF_cond_exp(tau_m=0.5, # parameters for a fast membrane
@@ -346,6 +374,7 @@ def test_pop(pop, test_data, exec_thing, spike_fitness):#, noise_rate=50, noise_
                 else:
                     output_pops.append(p.Population(outputs, p.IF_cond_exp(),
                                                    label='output_pop_{}-{}'.format(model_count, i)))
+                output_pops[model_count].add_placement_constraint(x=chip_x, y=chip_y)
                 if spike_fitness == 'out':
                     output_pops[model_count].record('spikes')
                 p.Projection(output_pops[model_count], input_pops[model_count], p.AllToAllConnector())
@@ -353,13 +382,15 @@ def test_pop(pop, test_data, exec_thing, spike_fitness):#, noise_rate=50, noise_
                     output_noise = p.Population(outputs, p.SpikeSourcePoisson(rate=noise_rate), label="output noise")
                     p.Projection(output_noise, output_pops[model_count], p.OneToOneConnector(),
                                  p.StaticSynapse(weight=noise_weight), receptor_type='excitatory')
-
+                    output_noise.add_placement_constraint(x=chip_x, y=chip_y)
                 if hidden_size != 0:
                     hidden_node_pops.append(p.Population(hidden_size, p.IF_cond_exp(), label="hidden_pop {}".format(i)))
                     hidden_count += 1
                     hidden_marker.append(i)
+                    hidden_node_pops[hidden_count].add_placement_constraint(x=chip_x, y=chip_y)
                     if noise_rate != 0:
                         hidden_noise = p.Population(hidden_size, p.SpikeSourcePoisson(rate=noise_rate), label="hidden noise")
+                        hidden_noise.add_placement_constraint(x=chip_x, y=chip_y)
                         p.Projection(hidden_noise, hidden_node_pops[hidden_count], p.OneToOneConnector(),
                                      p.StaticSynapse(weight=noise_weight), receptor_type='excitatory')
                     if spike_fitness:
