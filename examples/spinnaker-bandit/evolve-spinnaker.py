@@ -29,7 +29,7 @@ repeat_best = 5
 previous_best = False
 
 print ("reading from input")
-label = sys.arv[1]
+label = sys.argv[1]
 delay = float(sys.argv[2])
 print ("d", sys.argv[2])
 plasticity = bool(int(sys.argv[3]))
